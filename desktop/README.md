@@ -744,6 +744,12 @@ Precedence for credentials: `--token` → `HERMES_RELAY_TOKEN` → `--code` → 
 
 ## Troubleshooting
 
+- **Instant `0xC0000409` before help/version on Windows 26200.8875** —
+  [the targeted startup comparison](../docs/windows-startup-probe.md) separates
+  the official executable, Bun startup, and Relay startup. This remains an
+  affected-OS investigation; the diagnostic candidates are not replacement
+  releases.
+
 - **Many `Bun` / `hermes-relay.exe` processes, or Windows error `0xc0000142` from `reg.exe`, `adb.exe`, or `hermes-relay.exe`** — quit **Hermes-Relay CLI UI** first, then run `hermes-relay daemon stop` from a fresh PowerShell. If the CLI cannot start, inspect exact executable paths before stopping only Hermes-Relay-owned processes:
 
   ```powershell
