@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Fixed
 
 - Android avoids redundant conversation history in Gateway send/recovery responses and pauses automatic conversation reopening after a recorded out-of-memory crash, preserving saved conversations and drafts. (#700)
+- Secure Link accepts PEM certificate chains, exports only the leaf certificate for pairing, and reports invalid certificate/key configurations without exposing private file paths. (#712)
 - Android keeps ONNX Runtime on 1.27.0 so sherpa-onnx native libs match the packaged runtime ABI.
 - Secure Link supports paired-device listing, session shortening, and revocation with the existing Relay authorization rules.
 - Android pauses both wake-word listener modes before voice capture and resumes listening after voice exits, preventing microphone conflicts. (#681)
