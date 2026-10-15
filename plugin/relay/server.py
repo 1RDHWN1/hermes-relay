@@ -205,7 +205,12 @@ class RelayServer:
                 logger.error(
                     "%s disabled: identity setup failed: %s",
                     SECURE_LINK_NAME,
-                    exc,
+                    # Our ValueErrors are actionable and omit file contents/paths.
+                    # OS/subprocess errors may expose private paths or commands.
+                    str(exc) if isinstance(exc, ValueError) else (
+                        "check identity file access and OpenSSL availability "
+                        f"({type(exc).__name__})"
+                    ),
                 )
 
         broker_url = config.secure_link_broker_url
