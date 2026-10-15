@@ -3,6 +3,9 @@
 function classifyCiPaths(paths) {
   const forceAll = paths.some((path) => [
     '.github/workflows/ci-required.yml',
+    '.github/workflows/dependabot-auto-merge.yml',
+    '.github/scripts/check-dependabot-merge.cjs',
+    '.github/scripts/check-dependabot-merge.test.cjs',
     '.github/workflows/release-backmerge.yml',
     '.github/workflows/approve-release-train.yml',
     '.github/scripts/classify-ci-paths.cjs',
