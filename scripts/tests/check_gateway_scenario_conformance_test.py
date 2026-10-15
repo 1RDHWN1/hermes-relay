@@ -269,6 +269,18 @@ async def gateway_ws(ws):
         self.assertEqual(module.ALL_CONTRACTS, tuple(result.contract for result in results))
         self.assertTrue(all(result.passed for result in results), results)
 
+    def test_resume_follows_extracted_helpers_but_not_unreachable_history(self):
+        path = self.root / module.SESSION_METHODS
+        original = path.read_text(encoding="utf-8")
+        marker = '@method("session.resume")\ndef _(rid, params):'
+        extracted = original.replace(marker,
+            '@method("session.resume")\ndef _(rid, params):\n'
+            '    return _resume_impl(rid, params)\n\ndef _resume_impl(rid, params):')
+        path.write_text(extracted, encoding="utf-8")
+        self.assertTrue(module.audit_sources(self.root, (module.SESSION_RESUME,))[0].passed)
+        path.write_text(extracted.replace('return _resume_impl(rid, params)', 'return {}'), encoding="utf-8")
+        self.assertFalse(module.audit_sources(self.root, (module.SESSION_RESUME,))[0].passed)
+
     def test_extracted_registry_keeps_identity_and_status_requirements(self):
         path = self.root / "tui_gateway/session_registry.py"
         path.write_text(SERVER_SOURCE, encoding="utf-8")

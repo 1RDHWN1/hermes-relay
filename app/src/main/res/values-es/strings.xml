@@ -4323,4 +4323,5 @@
     <string name="paired_devices_policy_failed">No se pudo acortar la sesión. Actualiza las sesiones de Relay y prueba una duración menor, o vuelve a emparejar con un nuevo código aprobado por el operador para renovar el acceso.</string>
     <string name="paired_devices_updating">Actualizando sesión…</string>
     <string name="paired_devices_no_shorter_duration">No queda ninguna duración predefinida más corta. Puedes revocar esta sesión o volver a emparejar para renovar el acceso.</string>
+    <string name="crash_memory_recovery_body">La aplicación se quedó sin memoria. La reapertura automática de conversaciones está pausada durante este inicio. Cierra este informe y elige una conversación en Sesiones o inicia un chat nuevo. No se han eliminado las conversaciones ni los borradores guardados. Hermes podría seguir trabajando.</string>
 </resources>

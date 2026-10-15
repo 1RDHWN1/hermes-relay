@@ -4627,4 +4627,5 @@
     <string name="paired_devices_policy_failed">セッションの期間を短縮できませんでした。Relay セッションを更新してより短い期間を試すか、オペレーターが承認した新しいコードで再度ペアリングしてアクセスを更新してください。</string>
     <string name="paired_devices_updating">セッションを更新中…</string>
     <string name="paired_devices_no_shorter_duration">これより短い選択肢はありません。このセッションを取り消すか、再度ペアリングしてアクセスを更新できます。</string>
+    <string name="crash_memory_recovery_body">アプリのメモリが不足しました。今回は会話を自動で開き直しません。このレポートを閉じてから、セッションで会話を選ぶか、新しいチャットを開始してください。保存済みの会話と下書きは削除されていません。Hermes では処理が続いている可能性があります。</string>
 </resources>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="crash_memory_recovery_body">The app ran out of memory. Automatic conversation reopening is paused for this launch. Dismiss this report, then choose a conversation from Sessions or start a new chat. Saved conversations and drafts have not been deleted. Work on Hermes may still be running.</string>
     <string name="clarify_batch_progress">Question %1$d of %2$d</string>
     <string name="clarify_batch_complete">All questions answered</string>
     <string name="clarify_batch_expired">This request has ended</string>
