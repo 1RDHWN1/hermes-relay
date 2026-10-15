@@ -269,6 +269,17 @@ async def gateway_ws(ws):
         self.assertEqual(module.ALL_CONTRACTS, tuple(result.contract for result in results))
         self.assertTrue(all(result.passed for result in results), results)
 
+    def test_extracted_registry_keeps_identity_and_status_requirements(self):
+        path = self.root / "tui_gateway/session_registry.py"
+        path.write_text(SERVER_SOURCE, encoding="utf-8")
+        requirements = (module.SESSION_ACTIVATE, module.SESSION_ACTIVE_LIST)
+        self.assertTrue(all(result.passed for result in module.audit_sources(self.root, requirements)))
+        # Intact legacy helpers must not mask a broken extracted implementation.
+        path.write_text(SERVER_SOURCE.replace('"session_key"', '"other_key"'), encoding="utf-8")
+        self.assertTrue(all(not result.passed for result in module.audit_sources(self.root, requirements)))
+        path.write_text(SERVER_SOURCE.replace('"waiting"', '"other_state"'), encoding="utf-8")
+        self.assertFalse(module.audit_sources(self.root, (module.SESSION_ACTIVE_LIST,))[0].passed)
+
     def test_ticket_protocol_requires_public_selection_and_single_use_admission(self):
         for relative, before, after in (
             ("hermes_cli/web_server_chat.py", "consume_ticket(ticket)", "accept(ticket)"),

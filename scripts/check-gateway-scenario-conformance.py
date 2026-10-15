@@ -641,7 +641,11 @@ def audit_sources(root: Path, requirements: Iterable[str]) -> list[CheckResult]:
     prompt_methods = SourceFile(root, PROMPT_METHODS)
     active_sessions = SourceFile(root, ACTIVE_SESSIONS)
     api = SourceFile(root, API_SERVER)
-    source_files = (server, methods, prompt_methods, active_sessions, api)
+    registry = (
+        SourceFile(root, "tui_gateway/session_registry.py")
+        if (root / "tui_gateway/session_registry.py").is_file() else server
+    )
+    source_files = (server, registry, methods, prompt_methods, active_sessions, api)
     fork_hits = [
         f"{source.relative}:{marker}"
         for source in source_files
@@ -669,9 +673,9 @@ def audit_sources(root: Path, requirements: Iterable[str]) -> list[CheckResult]:
             SourceFile(root, "tui_gateway/prompt_turn.py")
             if (root / "tui_gateway/prompt_turn.py").is_file() else server,
         ),
-        SESSION_ACTIVATE: lambda: _check_activate(server, methods),
+        SESSION_ACTIVATE: lambda: _check_activate(registry, methods),
         SESSION_RESUME: lambda: _check_resume(methods),
-        SESSION_ACTIVE_LIST: lambda: _check_active_list(server, methods),
+        SESSION_ACTIVE_LIST: lambda: _check_active_list(registry, methods),
         SESSION_EXCLUSIVE_SUBMIT: lambda: _check_session_exclusive_submit(
             server, methods, prompt_methods, active_sessions,
         ),
