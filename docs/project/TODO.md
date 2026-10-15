@@ -12,17 +12,6 @@ crashes there before help/version. Keep the release Bun pin unchanged until the
 runtime comparison supplies matching evidence; successful probes on a newer
 Windows revision do not certify a fix.
 
-## Secure Link Relay session REST coverage
-
-Secure Link currently mounts `/relay/health` and `/relay/ws`, but does not mount
-Relay session listing or policy/revocation routes under `/relay/sessions`.
-Android session management can receive HTTP 404 and show an empty list on this
-transport. Add authorization-preserving REST coverage and contract tests as a
-separate change. Preserve ordinary bearer self-only policy reductions and the
-operator-approved renewal boundary.
-
----
-
 ## Optional Dashboard transport support for CLI+UI
 
 The normal CLI+UI computer-connector flow uses Relay pairing and local per-host
