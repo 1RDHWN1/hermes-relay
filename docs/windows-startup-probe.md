@@ -9,6 +9,21 @@ resolve the report.
 
 ## Build the comparison bundle
 
+For a shareable candidate, open a PR targeting `dev` and apply the
+`windows-startup-probe` label. **Windows Startup Diagnostic Candidate** checks
+out the exact PR head, runs the runner regression tests, builds the pinned
+comparison below, and requires all 120 startup probes to pass on its Windows
+runner before uploading. It uses read-only repository permissions, no signing
+or deployment secrets, and does not create a tag or release.
+
+The Actions artifact is retained for 30 days and requires GitHub sign-in to
+download. Its summary contains the download URL and archive digest. The ZIP
+includes executable hashes, a manifest identifying both the fixed Relay source
+and the builder SHA, `PROVENANCE.json`, an inspection copy of the builder and
+minimal program, and a README. Maintainers must download that exact artifact,
+verify its digest and payload hashes, and run it locally before sharing the link.
+The existing Android/Plugin `review-candidate` lane is unchanged.
+
 On Windows with Node 21+, Git, curl, and tar, from the repository root:
 
 ```powershell
@@ -33,10 +48,10 @@ Both rebuilt Relay variants and minimal programs use `--compile --minify
 --sourcemap`. Baseline is a diagnostic comparison, not an assumed remedy for
 `0xC0000409`. The minimal program prints a marker and imports no Relay code.
 
-For a reporter handoff, package only the ten top-level `.exe` files,
-`manifest.json`, `SHA256SUMS.txt`, and `test-windows-startup-probe.ps1` from the
-output directory. Do not include extracted build directories or local run
-directories. Publishing the bundle remains a separate maintainer action.
+For a local reporter handoff, package only files named in `SHA256SUMS.txt` plus
+the checksum file itself. Do not include extracted build directories or local
+run directories. The Actions job adds checksummed workflow provenance before
+upload. Publishing or commenting remains an explicit maintainer action.
 
 ## Reporter test
 

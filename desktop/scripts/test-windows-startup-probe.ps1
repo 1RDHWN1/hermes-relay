@@ -95,6 +95,7 @@ foreach ($binary in $manifest.binaries) {
 $os = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
 $report = [ordered]@{
     schemaVersion = 1; sourceCommit = $manifest.sourceCommit; sourceTag = $manifest.sourceTag
+    builderCommit = $manifest.builderCommit
     windowsBuild = "$($os.CurrentBuild).$($os.UBR)"; architecture = $env:PROCESSOR_ARCHITECTURE
     rows = $rows
 }

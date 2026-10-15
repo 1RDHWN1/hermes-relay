@@ -15,6 +15,7 @@ await mkdir(dirname(output), { recursive: true })
 await mkdir(output) // Refuse to overwrite an existing bundle.
 const sourceCommit = '3200f696cd51645c275f97635312294785894137'
 const sourceTag = 'desktop-v0.4.0-beta.8'
+const builderCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim()
 const source = join(output, 'source')
 await mkdir(source)
 execFileSync('git', ['archive', sourceCommit, 'desktop', '-o', join(output, 'source.tar')], { cwd: repo })
@@ -58,9 +59,13 @@ for (const variant of variants) {
     await addBinary(file, kind, variant.version, variant.target, url)
   }
 }
-await writeFile(join(output, 'manifest.json'), JSON.stringify({ schemaVersion: 1, sourceTag, sourceCommit, variants, binaries }, null, 2) + '\n')
+await writeFile(join(output, 'manifest.json'), JSON.stringify({ schemaVersion: 1, sourceTag, sourceCommit, builderCommit, variants, binaries }, null, 2) + '\n')
 await copyFile(join(scriptDir, 'test-windows-startup-probe.ps1'), join(output, 'test-windows-startup-probe.ps1'))
+await copyFile(join(scriptDir, 'build-windows-startup-probe.mjs'), join(output, 'build-windows-startup-probe.mjs'))
+await copyFile(join(scriptDir, 'windows-startup-probe-README.md'), join(output, 'README.md'))
+await copyFile(join(source, 'minimal.ts'), join(output, 'minimal.ts'))
 await writeFile(join(output, 'SHA256SUMS.txt'), (await Promise.all(
-  [...binaries.map(item => item.file), 'manifest.json', 'test-windows-startup-probe.ps1'].map(async file => `${await hash(join(output, file))}  ${file}`)
+  [...binaries.map(item => item.file), 'manifest.json', 'test-windows-startup-probe.ps1',
+    'build-windows-startup-probe.mjs', 'README.md', 'minimal.ts'].map(async file => `${await hash(join(output, file))}  ${file}`)
 )).join('\n') + '\n')
 console.log(`Prepared ${binaries.length} executables in ${output}. Run test-windows-startup-probe.ps1 there; nothing was installed.`)
