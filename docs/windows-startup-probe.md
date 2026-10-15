@@ -16,8 +16,10 @@ comparison below, and requires all 120 startup probes to pass on its Windows
 runner before uploading. It uses read-only repository permissions, no signing
 or deployment secrets, and does not create a tag or release.
 
-The Actions artifact is retained for 30 days and requires GitHub sign-in to
-download. Its summary contains the download URL and archive digest. The ZIP
+The Actions artifact requests seven-day retention and requires GitHub sign-in
+to download. Check its actual `expires_at` in GitHub artifact metadata before
+sharing; repository policy may impose a shorter limit. Its summary contains
+the download URL and archive digest. The ZIP
 includes executable hashes, a manifest identifying both the fixed Relay source
 and the builder SHA, `PROVENANCE.json`, an inspection copy of the builder and
 minimal program, and a README. Maintainers must download that exact artifact,

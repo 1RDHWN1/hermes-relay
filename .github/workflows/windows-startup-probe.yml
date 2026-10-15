@@ -116,7 +116,7 @@ jobs:
           name: windows-startup-probe-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
           path: reporter-bundle/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
 
       - name: Record download identity
         shell: pwsh
@@ -126,4 +126,4 @@ jobs:
         run: |
           "Download: $env:ARTIFACT_URL" >> $env:GITHUB_STEP_SUMMARY
           "Archive SHA-256: $env:ARTIFACT_DIGEST" >> $env:GITHUB_STEP_SUMMARY
-          'Retention: 30 days. GitHub sign-in is required to download.' >> $env:GITHUB_STEP_SUMMARY
+          'Retention requested: 7 days. Check artifact metadata for the actual expiry. GitHub sign-in is required to download.' >> $env:GITHUB_STEP_SUMMARY
