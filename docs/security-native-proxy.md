@@ -56,6 +56,13 @@ never fall back to browser-side configuration writes.
 - The TLS private key is created atomically with owner-only permissions. The
   certificate SAN matches the advertised hostname or IP. Changing the
   advertised authority requires deliberate certificate/pin rotation.
+- Configured PEM chains put the leaf certificate first, followed by its
+  intermediates. The leaf must match the configured private key. Secure Link
+  validates TLS loading before advertising the identity, exports only that leaf
+  as pairing `cert_der`, and derives the SPKI pin from the same first certificate.
+  The complete PEM chain remains unchanged for TLS serving. Invalid identities
+  disable Secure Link with a diagnostic that omits private paths and contents;
+  ordinary Relay remains available.
 - The listener has exactly three fixed namespaces under one pinned origin: `/relay`, `/api`, and
   `/dashboard`. `/relay` contains health, the authenticated WebSocket, and
   `GET /relay/sessions`, `PATCH /relay/sessions/{token_prefix}`, and
