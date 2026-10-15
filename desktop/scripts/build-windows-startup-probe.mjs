@@ -30,6 +30,17 @@ const variants = [
   { version: '1.4.0', target: 'bun-windows-x64', sha256: 'e6f093d39da486b20262ca8cdd5ed6a9e8bc9c2f275b78e6d3a0c5b28cc95901' },
   { version: '1.4.0', target: 'bun-windows-x64-baseline', sha256: 'b929c54a9badb104a16dedd23aab6152c86793ae653d4e6b13983ffd0c882a66' }
 ]
+const licenseHashes = {
+  '1.3.14': '2c6160ec8fb853f7e8f97d9b249e756c9b0ac44860a68b6bf4f1b0bcbc5c3741',
+  '1.4.0': 'b9caf52728691b4057e371232c221a132883198be2f3d2ddf92c90404c984b1a'
+}
+const licenseFiles = ['LICENSE-Relay.txt']
+await writeFile(join(output, 'LICENSE-Relay.txt'), execFileSync('git', ['show', `${sourceCommit}:LICENSE`], { cwd: repo }))
+for (const [version, sha256] of Object.entries(licenseHashes)) {
+  const file = `LICENSE-Bun-${version}.md`
+  await download(`https://raw.githubusercontent.com/oven-sh/bun/bun-v${version}/LICENSE.md`, join(output, file), sha256)
+  licenseFiles.push(file)
+}
 const binaries = []
 const addBinary = async (file, kind, version, target, sourceUrl) => {
   binaries.push({ file, kind, version, target, sourceUrl, sha256: await hash(join(output, file)) })
@@ -66,6 +77,6 @@ await copyFile(join(scriptDir, 'windows-startup-probe-README.md'), join(output, 
 await copyFile(join(source, 'minimal.ts'), join(output, 'minimal.ts'))
 await writeFile(join(output, 'SHA256SUMS.txt'), (await Promise.all(
   [...binaries.map(item => item.file), 'manifest.json', 'test-windows-startup-probe.ps1',
-    'build-windows-startup-probe.mjs', 'README.md', 'minimal.ts'].map(async file => `${await hash(join(output, file))}  ${file}`)
+    'build-windows-startup-probe.mjs', 'README.md', 'minimal.ts', ...licenseFiles].map(async file => `${await hash(join(output, file))}  ${file}`)
 )).join('\n') + '\n')
 console.log(`Prepared ${binaries.length} executables in ${output}. Run test-windows-startup-probe.ps1 there; nothing was installed.`)

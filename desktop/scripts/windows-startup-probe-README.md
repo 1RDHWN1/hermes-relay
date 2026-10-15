@@ -47,6 +47,11 @@ all payload files, including this README and both scripts. The builder and
 
 Relay source: <https://github.com/Codename-11/hermes-relay/tree/3200f696cd51645c275f97635312294785894137/desktop>
 
+Relay's license and each Bun version's upstream license/dependency notices are
+included as `LICENSE-*`. Bun sources and its build instructions are available at
+<https://github.com/oven-sh/bun/tree/bun-v1.3.14> and
+<https://github.com/oven-sh/bun/tree/bun-v1.4.0>.
+
 The CI artifact includes `PROVENANCE.json` with its PR head and workflow run.
 The workflow checks all 120 launches on its Windows runner before uploading.
 That CI result does not establish compatibility with Windows 26200.8875.

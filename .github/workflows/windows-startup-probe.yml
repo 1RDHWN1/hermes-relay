@@ -91,7 +91,7 @@ jobs:
             if ((Get-FileHash -LiteralPath $path).Hash.ToLowerInvariant() -ne $digest) { throw "Hash mismatch: $name" }
             Copy-Item -LiteralPath $path -Destination reporter-bundle
           }
-          if ($seen.Count -ne 15) { throw 'Unexpected reporter payload inventory' }
+          if ($seen.Count -ne 18) { throw 'Unexpected reporter payload inventory' }
           $manifest = Get-Content reporter-bundle/manifest.json -Raw | ConvertFrom-Json
           if ($manifest.builderCommit -ne $env:BUILDER_SHA) { throw 'Manifest builder mismatch' }
           $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
