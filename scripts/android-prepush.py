@@ -21,6 +21,9 @@ import sys
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 FOCUSED_TESTS = (
+    "com.hermesandroid.relay.network.upstream.GatewayPayloadMemoryTest",
+    "com.hermesandroid.relay.viewmodel.ChatMemoryRecoveryTest",
+    "com.hermesandroid.relay.reliability.ReliabilityReportTest",
     "com.hermesandroid.relay.data.ChatUnreadStoreTest",
     "com.hermesandroid.relay.data.ChatTurnCheckpointStoreTest",
     "com.hermesandroid.relay.notifications.ChatNotificationIntentTest",

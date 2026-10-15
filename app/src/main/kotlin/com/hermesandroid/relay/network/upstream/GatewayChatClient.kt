@@ -1430,6 +1430,7 @@ class GatewayChatClient(
                     "session.activate",
                     buildJsonObject {
                         put("session_id", preferredLiveId)
+                        put("omit_messages", true)
                     },
                 )
                 response = activated.getOrNull()
@@ -1457,6 +1458,7 @@ class GatewayChatClient(
                             put("session_id", storedId)
                             put("cols", DEFAULT_COLS)
                             put("source", sessionSource)
+                            put("omit_messages", true)
                             requestedProfile?.let { put("profile", it) }
                         },
                     ).getOrElse { error ->
@@ -3645,6 +3647,8 @@ class GatewayChatClient(
                     put("session_id", requestedStoredId)
                     put("cols", DEFAULT_COLS)
                     put("source", sessionSource)
+                    // Visible history comes from Dashboard HTTP, not this binding response.
+                    put("omit_messages", true)
                     requestedProfile?.let { put("profile", it) }
                 },
             )
@@ -4544,7 +4548,10 @@ class GatewayChatClient(
                     val socket = webSocket ?: throw GatewayRpcException("gateway socket changed")
                     val activated = rpc(
                         "session.activate",
-                        buildJsonObject { put("session_id", preservedLiveId) },
+                        buildJsonObject {
+                            put("session_id", preservedLiveId)
+                            put("omit_messages", true)
+                        },
                         expectedConnection = ready,
                         expectedSocket = socket,
                     )

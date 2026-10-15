@@ -63,6 +63,7 @@ class GatewayClientHarness(
     private val allServerSockets = ConcurrentLinkedQueue<WebSocket>()
     val rpcLog = ConcurrentLinkedQueue<Pair<String, JsonObject>>()
     val serverResponses = LinkedBlockingQueue<JsonObject>()
+    val responseSizes = ConcurrentHashMap<String, Int>()
     var failTicketMint = false
     var malformedTicketMint = false
     val transientTicketFailures = AtomicInteger(0)
@@ -593,7 +594,16 @@ class GatewayClientHarness(
                     }
                 }
             }
-            webSocket.send(reply.toString())
+            // Upstream omits display history, but retains live state and metadata.
+            val wireReply = if (method in setOf("session.resume", "session.activate") &&
+                (params["omit_messages"] as? JsonPrimitive)?.booleanOrNull == true && result != null
+            ) {
+                JsonObject(reply + ("result" to JsonObject(result +
+                    ("messages" to JsonArray(emptyList())))))
+            } else reply
+            val wire = wireReply.toString()
+            responseSizes[method] = wire.length
+            webSocket.send(wire)
         }
     }
 
@@ -2372,6 +2382,54 @@ class GatewayChatClientTest {
     }
 
     @Test
+    fun `long history send omits unused rows before websocket decoding`() {
+        installLargeStoredHistory()
+        val r = Recorder()
+        client.sendTurn("stored-long", "continue", null, r.callbacks) {
+            r.preflightFailures += it
+        }
+        harness.awaitRpc("prompt.submit")
+        assertEquals(true, (harness.awaitRpc("session.resume")["omit_messages"] as? JsonPrimitive)?.booleanOrNull)
+        assertTrue("resume transferred history: ${harness.responseSizes}", harness.responseSizes.getValue("session.resume") < 2048)
+        assertEquals(48, harness.recoveryMessages.size)
+        assertTrue(r.preflightFailures.isEmpty())
+        assertFalse(harness.rpcLog.any { it.first == "session.create" })
+    }
+
+    @Test
+    fun `long history recovery omits unused rows but preserves inflight state`() = runBlocking {
+        installLargeStoredHistory()
+        harness.recoveryRunning = true
+        harness.recoveryAssistant = "partial answer"
+        val recovery = client.recoverTurn("stored-long", "live-original", Recorder().callbacks).getOrThrow()
+        assertEquals("partial answer", recovery.inflight?.assistant)
+        assertTrue(recovery.running)
+        assertEquals(true, (harness.awaitRpc("session.activate")["omit_messages"] as? JsonPrimitive)?.booleanOrNull)
+        assertTrue(harness.responseSizes.getValue("session.activate") < 2048)
+        assertEquals(48, harness.recoveryMessages.size)
+    }
+
+    @Test
+    fun `long history fallback resume omits unused rows`() = runBlocking {
+        installLargeStoredHistory()
+        harness.methodNotFound += "session.activate"
+        harness.recoveryRunning = true
+        val recovery = client.recoverTurn("stored-long", "expired-live", Recorder().callbacks).getOrThrow()
+        assertTrue(recovery.running)
+        assertEquals(true, (harness.awaitRpc("session.resume")["omit_messages"] as? JsonPrimitive)?.booleanOrNull)
+        assertTrue(harness.responseSizes.getValue("session.resume") < 2048)
+        assertEquals(48, harness.recoveryMessages.size)
+    }
+
+    private fun installLargeStoredHistory() {
+        // Bounded synthetic tool history, retained independently of live state.
+        val text = "tool output \"quoted\"\n".repeat(4096)
+        harness.recoveryMessages = JsonArray(List(48) {
+            buildJsonObject { put("role", "tool"); put("text", text) }
+        })
+    }
+
+    @Test
     fun `existing session id is resumed not recreated`() {
         val r = Recorder()
         client.sendTurn("20260101_010101_aaaaaa", "again", null, r.callbacks) {
@@ -2654,6 +2712,7 @@ class GatewayChatClientTest {
 
     @Test
     fun `socket loss mid-turn activates original session without resume and completes`() {
+        installLargeStoredHistory()
         val r = Recorder()
         client.sendTurn(null, "hello", null, r.callbacks) { r.preflightFailures += it }
         val ws1 = harness.awaitServerSocket()
@@ -2670,6 +2729,7 @@ class GatewayChatClientTest {
         assertTrue("reconnect must mint a fresh ticket", harness.ticketMints.get() >= 2)
         val activate = harness.awaitRpc("session.activate")
         assertEquals("live-1", (activate["session_id"] as? JsonPrimitive)?.contentOrNull)
+        assertEquals(true, (activate["omit_messages"] as? JsonPrimitive)?.booleanOrNull)
 
         ws2.send(
             harness.eventFrame("message.delta", buildJsonObject { put("text", "after rejoin") }, "live-1"),
@@ -2679,6 +2739,8 @@ class GatewayChatClientTest {
         )
 
         assertTrue("turn never completed after rejoin", r.completeLatch.await(10, TimeUnit.SECONDS))
+        awaitCondition { harness.responseSizes.containsKey("session.activate") }
+        assertTrue(harness.responseSizes.getValue("session.activate") < 2048)
         assertEquals(listOf("after rejoin"), r.textDeltas.toList())
         assertEquals(1, r.reconcileRequests.get())
         assertTrue("rejoined turn must not error, got ${r.errors}", r.errors.isEmpty())

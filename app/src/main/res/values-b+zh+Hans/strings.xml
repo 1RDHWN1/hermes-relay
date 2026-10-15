@@ -4556,4 +4556,5 @@
     <string name="paired_devices_policy_failed">无法缩短会话有效期。请刷新 Relay 会话并尝试更短的时长，或使用经操作员批准的新配对码重新配对以续期访问权限。</string>
     <string name="paired_devices_updating">正在更新会话…</string>
     <string name="paired_devices_no_shorter_duration">没有更短的预设时长。你可以撤销此会话，或重新配对以续期访问权限。</string>
+    <string name="crash_memory_recovery_body">应用内存不足。本次启动已暂停自动重新打开对话。关闭此报告后，请从“会话”中选择一个对话或开始新聊天。已保存的对话和草稿未被删除。Hermes 上的任务可能仍在运行。</string>
 </resources>
