@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Fixed
 
+- Android preserves whole-sentence streaming audio and short replies after tool-call gaps, and drains delivered PCM before ending speech. (#704)
 - Android keeps ONNX Runtime on 1.27.0 so sherpa-onnx native libs match the packaged runtime ABI.
 - Android Voice no longer ends a reply while the last synthesized audio file is still playing, so Continuous mode reopens the microphone only after playback has finished.
 - Secure Link supports paired-device listing, session shortening, and revocation with the existing Relay authorization rules.
