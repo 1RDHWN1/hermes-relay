@@ -93,3 +93,14 @@ have succeeded before process termination for the recorded-crash gate to apply.
 No private conversation data or production payload is required by these tests.
 Actual Pixel 8 Pro / Android 17 behavior and the reporter's exact trigger require
 separate device evidence; a synthetic test cannot certify them.
+
+## Rendered recovery evidence
+
+The focused `ChatMemoryRecoveryInstrumentedTest` passed on Standard Phone API 36
+(Pixel 6 profile, x86_64) at `08ba907721c7e180f37e15a7e45f47fb09f1cbd2`: one test,
+zero failures or skips. It exercised the production crash dialog and chat state
+under dismissal and Activity lifecycle return, followed by explicit history loading.
+The dialog capture uses the default dark app theme in the instrumentation harness;
+it is not a physical-device or full production-startup certification.
+
+![OOM recovery dialog on Standard Phone API 36](audits/assets/issue-700/memory-recovery-dialog.png)
