@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Fixed
 
+- Android preserves native Dashboard sign-in during reverse-proxy access failures and retries refresh on a later request when the route is reachable again. (#711)
 - Secure Link accepts PEM certificate chains, exports only the leaf certificate for pairing, and reports invalid certificate/key configurations without exposing private file paths. (#712)
 - Android keeps ONNX Runtime on 1.27.0 so sherpa-onnx native libs match the packaged runtime ABI.
 - Secure Link supports paired-device listing, session shortening, and revocation with the existing Relay authorization rules.
