@@ -481,7 +481,13 @@ class GatewayForegroundRecoveryInstrumentedTest {
                 LIVE_SESSION_ID,
             ),
         )
-        compose.waitUntil(5_000) { handler.isStreaming.value }
+        // Sending marks the UI as streaming before Gateway frames arrive.
+        // Wait for the delta to be consumed so the idle probe captures the
+        // current progress generation instead of racing that live progress.
+        compose.waitUntil(5_000) {
+            handler.isStreaming.value &&
+                handler.messages.value.any { it.content.contains(PARTIAL_ANSWER) }
+        }
         compose.onNodeWithTag("stream-state").assertTextEquals("STREAMING")
 
         persistedHistory = listOf(
