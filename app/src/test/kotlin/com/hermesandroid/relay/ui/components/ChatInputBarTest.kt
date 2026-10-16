@@ -263,8 +263,11 @@ class ChatInputBarTest {
         // One parameterized pass over all five ChatInputTrailing states: the
         // trailing slot morphs in place, so each state must keep the same
         // minimum hit area.
+        var stateTrailing by mutableStateOf(ChatInputTrailing.SEND)
+        compose.setContent { MaterialTheme { bar(trailing = stateTrailing) } }
         for (trailing in ChatInputTrailing.entries) {
-            compose.setContent { MaterialTheme { bar(trailing = trailing) } }
+            compose.runOnIdle { stateTrailing = trailing }
+            compose.waitForIdle()
             compose.onNodeWithTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG)
                 .assertTouchTargetAtLeast(minTouchPx)
         }
@@ -285,23 +288,22 @@ class ChatInputBarTest {
     }
 
     @Test
-    fun `trailing touch target stays stable while the selector label grows`() {
+    fun `trailing touch target stays stable while the draft grows`() {
         // The bar is a single row: a long draft must not stretch the send
         // button, and neither may it push the affordance below 48dp.
-        compose.setContent { MaterialTheme { bar(value = "short") } }
+        var value by mutableStateOf("short")
+        compose.setContent { MaterialTheme { bar(value = value) } }
+        compose.waitForIdle()
         val short = compose.onNodeWithTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG)
             .fetchSemanticsNode().boundsInRoot
 
-        compose.setContent {
-            MaterialTheme { bar(value = "x".repeat(2_000)) }
-        }
-        compose.runOnIdle {
-            val long = compose.onNodeWithTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG)
-                .fetchSemanticsNode().boundsInRoot
-            org.junit.Assert.assertEquals(short.width, long.width)
-            org.junit.Assert.assertEquals(short.height, long.height)
-            org.junit.Assert.assertTrue(long.width >= minTouchPx && long.height >= minTouchPx)
-        }
+        compose.runOnIdle { value = "x".repeat(2_000) }
+        compose.waitForIdle()
+        val long = compose.onNodeWithTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        org.junit.Assert.assertEquals(short.width, long.width)
+        org.junit.Assert.assertEquals(short.height, long.height)
+        org.junit.Assert.assertTrue(long.width >= minTouchPx && long.height >= minTouchPx)
     }
 
     @Test

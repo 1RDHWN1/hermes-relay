@@ -165,9 +165,9 @@ fun RelayStatusStrip(
 /**
  * Footer model/reasoning pill. Bounded on narrow phones and large font scale:
  * the label ellipses inside a fixed max width instead of pushing the route
- * readout or sibling pill off screen, while the whole pill keeps a 40dp touch
- * 48dp target and its own content description (the text node alone is truncated,
- * so it can't carry the full accessible name). Font scaling stays fully
+ * readout or sibling pill off screen, while the whole pill keeps an explicit
+ * minimum touch target and its own content description (the text node alone is
+ * truncated, so it can't carry the full accessible name). Font scaling stays fully
  * enabled — only the width is capped.
  */
 @Composable
