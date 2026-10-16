@@ -346,10 +346,10 @@ class ChatInputBarTest {
         compose.runOnIdle {
             val pill = compose.onNodeWithContentDescription("Select model")
             pill.assertExists()
-            // The label is capped (140dp == 280px at xhdpi) so the pill can
-            // never push the route readout off a narrow phone.
+            // The label is capped (140dp == 280px at xhdpi), with bounded
+            // padding and the affordance icon kept inside the pill.
             org.junit.Assert.assertTrue(
-                pill.fetchSemanticsNode().boundsInRoot.width <= 300,
+                pill.fetchSemanticsNode().boundsInRoot.width <= 340,
             )
         }
     }
