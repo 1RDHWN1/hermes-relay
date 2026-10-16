@@ -14,7 +14,6 @@ import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -309,9 +308,7 @@ class ChatInputBarTest {
     @Test
     fun `composer affordances keep their accessible names while targets grow`() {
         setComposer(value = "")
-        compose.onAllNodesWithContentDescription("Add attachment; hold for commands")
-            .onFirst()
-            .assertExists()
+        compose.onNodeWithContentDescription("Add attachment; hold for commands").assertExists()
         compose.onNodeWithContentDescription("Start voice conversation").assertExists()
         compose.onNodeWithContentDescription("Send message").assertExists()
     }
