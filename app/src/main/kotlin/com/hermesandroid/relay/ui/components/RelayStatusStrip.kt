@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -123,70 +124,18 @@ fun RelayStatusStrip(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f))
-                                .border(
-                                    BorderStroke(
-                                        0.5.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                                    ),
-                                    RoundedCornerShape(999.dp)
-                                )
-                                .clickable(onClick = onModelClick)
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            Text(
-                                text = modelLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 110.dp),
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.cd_select_model),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(12.dp),
-                            )
-                        }
+                        StatusPill(
+                            label = modelLabel,
+                            contentDescription = stringResource(R.string.cd_select_model),
+                            onClick = onModelClick,
+                        )
 
                         if (onEffortClick != null && !effortLabel.isNullOrBlank()) {
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f))
-                                    .border(
-                                        BorderStroke(
-                                            0.5.dp,
-                                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                                        ),
-                                        RoundedCornerShape(999.dp)
-                                    )
-                                    .clickable(onClick = onEffortClick)
-                                    .padding(horizontal = 6.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            ) {
-                                Text(
-                                    text = effortLabel,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.widthIn(max = 80.dp),
-                                )
-                                Icon(
-                                    imageVector = Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = stringResource(R.string.chat_select_reasoning_effort),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(12.dp),
-                                )
-                            }
+                            StatusPill(
+                                label = effortLabel,
+                                contentDescription = stringResource(R.string.chat_select_reasoning_effort),
+                                onClick = onEffortClick,
+                            )
                         }
 
                         if (!profileLabel.isNullOrBlank()) {
@@ -210,6 +159,57 @@ fun RelayStatusStrip(
                 }
             }
         }
+    }
+}
+
+/**
+ * Footer model/reasoning pill. Bounded on narrow phones and large font scale:
+ * the label ellipses inside a fixed max width instead of pushing the route
+ * readout or sibling pill off screen, while the whole pill keeps a 40dp touch
+ * 48dp target and its own content description (the text node alone is truncated,
+ * so it can't carry the full accessible name). Font scaling stays fully
+ * enabled — only the width is capped.
+ */
+@Composable
+private fun StatusPill(
+    label: String,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f))
+            .border(
+                BorderStroke(
+                    0.5.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                ),
+                RoundedCornerShape(999.dp)
+            )
+            .clickable(onClick = onClick)
+            .semantics {
+                contentDescription = contentDescription
+            }
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 140.dp),
+        )
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp),
+        )
     }
 }
 

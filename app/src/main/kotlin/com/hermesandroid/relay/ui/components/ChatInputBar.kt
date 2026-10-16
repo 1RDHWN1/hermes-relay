@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,8 +74,8 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hermesandroid.relay.R
 import com.hermesandroid.relay.ui.theme.RelayRefresh
@@ -99,6 +100,22 @@ import kotlinx.coroutines.delay
 enum class ChatInputTrailing { SEND, VOICE, STOP, STEER, QUEUE }
 
 internal const val CHAT_INPUT_FIELD_TEST_TAG = "chat-input-field"
+internal const val CHAT_INPUT_ATTACH_BUTTON_TEST_TAG = "chat-input-attach-button"
+internal const val CHAT_INPUT_VOICE_BUTTON_TEST_TAG = "chat-input-voice-button"
+internal const val CHAT_INPUT_VOICE_BADGE_TEST_TAG = "chat-input-voice-badge"
+internal const val CHAT_INPUT_TRAILING_BUTTON_TEST_TAG = "chat-input-trailing-button"
+
+/**
+ * Explicit minimum touch target for every composer affordance (attachment,
+ * voice, send/stop/steer/queue). 48.dp is the platform minimum tap size; the
+ * box grows with the icon but never shrinks below it, and the glyph itself
+ * keeps a fixed [ComposerIconSize] so the touch area — not the selector text —
+ * stays stable.
+ */
+internal val ComposerTouchTarget: Modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+
+/** Fixed icon size for composer affordances, independent of label length. */
+internal val ComposerIconSize: Dp = 22.dp
 
 data class ChatInputPickerOption(
     val label: String,
@@ -373,7 +390,8 @@ fun ChatInputBar(
                     Box {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .testTag(CHAT_INPUT_ATTACH_BUTTON_TEST_TAG)
+                                .then(ComposerTouchTarget)
                                 .clip(CircleShape)
                                 .combinedClickable(
                                     onClick = { attachMenuExpanded = true },
@@ -387,6 +405,7 @@ fun ChatInputBar(
                                 imageVector = Icons.Filled.Add,
                                 contentDescription = stringResource(R.string.chat_input_add_attachment_hold),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(ComposerIconSize),
                             )
                         }
                         DropdownMenu(
@@ -529,13 +548,17 @@ fun ChatInputBar(
                     ) {
                         // Voice waves button (where mic is in the picture)
                         if (!suppressVoiceTrailing) {
-                            Box {
-                                IconButton(onClick = onVoice) {
+                            Box(modifier = Modifier.testTag(CHAT_INPUT_VOICE_BUTTON_TEST_TAG)) {
+                                IconButton(
+                                    onClick = onVoice,
+                                    modifier = ComposerTouchTarget,
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.GraphicEq,
                                         contentDescription = if (voiceReady) stringResource(R.string.chat_input_start_voice)
                                             else stringResource(R.string.chat_input_voice_setup_needed),
                                         tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(ComposerIconSize),
                                     )
                                 }
                                 // "Needs setup" badge — full-alpha button + Amber
@@ -543,6 +566,7 @@ fun ChatInputBar(
                                 if (!voiceReady) {
                                     Box(
                                         modifier = Modifier
+                                            .testTag(CHAT_INPUT_VOICE_BADGE_TEST_TAG)
                                             .align(Alignment.TopEnd)
                                             .padding(top = 8.dp, end = 8.dp)
                                             .size(6.dp)
@@ -572,7 +596,10 @@ fun ChatInputBar(
                             ) { state ->
                                 when (state) {
                                     ChatInputTrailing.STOP -> {
-                                        IconButton(onClick = onStop) {
+                                        IconButton(
+                                            onClick = onStop,
+                                            modifier = Modifier.testTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG).then(ComposerTouchTarget),
+                                        ) {
                                             Box(
                                                 modifier = Modifier
                                                     .size(32.dp)
@@ -583,7 +610,7 @@ fun ChatInputBar(
                                                     imageVector = Icons.Filled.Stop,
                                                     contentDescription = stringResource(R.string.chat_input_stop_streaming),
                                                     tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.size(18.dp),
+                                                    modifier = Modifier.size(ComposerIconSize),
                                                 )
                                             }
                                         }
@@ -592,23 +619,27 @@ fun ChatInputBar(
                                     ChatInputTrailing.STEER -> IconButton(
                                         onClick = onSend,
                                         enabled = canSubmit,
+                                        modifier = Modifier.testTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG).then(ComposerTouchTarget),
                                     ) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.Send,
                                             contentDescription = stringResource(R.string.chat_input_steer_response),
                                             tint = MaterialTheme.colorScheme.tertiary,
+                                            modifier = Modifier.size(ComposerIconSize),
                                         )
                                     }
 
                                     ChatInputTrailing.QUEUE -> IconButton(
                                         onClick = onSend,
                                         enabled = canSubmit,
+                                        modifier = Modifier.testTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG).then(ComposerTouchTarget),
                                     ) {
                                         Box {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.Send,
                                                 contentDescription = stringResource(R.string.chat_input_queue_message),
                                                 tint = MaterialTheme.colorScheme.tertiary,
+                                                modifier = Modifier.size(ComposerIconSize),
                                             )
                                             Icon(
                                                 imageVector = Icons.Filled.Schedule,
@@ -625,12 +656,14 @@ fun ChatInputBar(
                                     else -> IconButton(
                                         onClick = onSend,
                                         enabled = canSubmit,
+                                        modifier = Modifier.testTag(CHAT_INPUT_TRAILING_BUTTON_TEST_TAG).then(ComposerTouchTarget),
                                     ) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.Send,
                                             contentDescription = stringResource(R.string.chat_input_send_message),
                                             tint = if (canSubmit) MaterialTheme.colorScheme.primary
                                                 else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(ComposerIconSize),
                                         )
                                     }
                                 }
