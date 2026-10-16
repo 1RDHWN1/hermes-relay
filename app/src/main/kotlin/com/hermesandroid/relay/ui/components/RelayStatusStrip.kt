@@ -189,7 +189,7 @@ private fun StatusPill(
             )
             .clickable(onClick = onClick)
             .semantics {
-                contentDescription = contentDescription
+                this.contentDescription = contentDescription
             }
             .padding(horizontal = 10.dp, vertical = 6.dp)
             .heightIn(min = 48.dp),
