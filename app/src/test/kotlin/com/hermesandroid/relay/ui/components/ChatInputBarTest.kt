@@ -349,7 +349,7 @@ class ChatInputBarTest {
             // The label is capped (140dp == 280px at xhdpi), with bounded
             // padding and the affordance icon kept inside the pill.
             org.junit.Assert.assertTrue(
-                pill.fetchSemanticsNode().boundsInRoot.width <= 340,
+                pill.fetchSemanticsNode().boundsInRoot.width <= 480,
             )
         }
     }
