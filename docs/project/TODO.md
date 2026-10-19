@@ -57,10 +57,10 @@ the focused playback matrix in [voice diagnosis](../standard-voice-fallback.md#m
 - Capture a sanitized per-failure trace for the reported Final answer only case
   that issues no synthesis request. The production observer fixture submits the
   settled final bubble; this does not establish the reporter's runtime cause.
-- Resolve the separate server configuration defect where a profile switches
-  `tts.provider` to ElevenLabs without a model and inherits the Relay renderer's
-  `xai-tts` model. Preserve explicit overrides and use the selected provider's
-  defaults; cover both global and profile configuration before changing it.
+- Obtain reporter confirmation of live ElevenLabs synthesis after the provider
+  default-selection fix in [#750](https://github.com/Codename-11/hermes-relay/issues/750).
+  Offline configuration and request-builder tests do not certify provider
+  acceptance, account/voice availability, or heard playback.
 - Decide how phone-local interruption should interact with Hold mode and how to
   distinguish it from host barge-in controls. PR #702 changes the default; it does
   not fix PCM truncation. PR #684's playback-only Stop policy is separate work.

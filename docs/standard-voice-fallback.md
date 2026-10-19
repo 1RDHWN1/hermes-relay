@@ -9,6 +9,28 @@ It is separate from OpenAI Realtime Agent session negotiation in #644.
 
 ## Recovery behavior
 
+### Relay profile renderer defaults
+
+For Relay streaming output, a profile's `voice_output` section takes precedence
+over its `tts` section. When that profile selects a different provider from the
+Relay baseline, omitted model and voice values use the selected streaming
+adapter's defaults. ElevenLabs therefore uses `eleven_flash_v2_5` when its model
+is omitted; an explicit `model` or `model_id` remains authoritative. This does
+not change the upstream/basic synthesis provider's defaults.
+
+Same-provider overrides retain the Relay baseline's model and voice unless the
+profile explicitly replaces them. A request without a profile keeps using the
+Relay configuration; selecting `default` resolves the root Hermes profile, and
+a missing named profile retains the existing explicit global-fallback behavior.
+Resolution does not rewrite any saved configuration.
+
+Offline tests cover configuration, Relay session creation, the real ElevenLabs
+request builder, and synthetic PCM delivery through a fake HTTP transport. Live
+ElevenLabs synthesis and heard playback still need reporter confirmation in
+[#750](https://github.com/Codename-11/hermes-relay/issues/750).
+
+### Streaming failure fallback
+
 When streaming voice fails, Android warns that basic speech is active and may
 pause between sentences. Check the configured voice provider settings. Provider
 credits, permissions, or availability can prevent streaming even while Hermes
