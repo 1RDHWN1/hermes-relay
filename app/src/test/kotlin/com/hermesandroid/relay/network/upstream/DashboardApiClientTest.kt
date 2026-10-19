@@ -1533,6 +1533,7 @@ class DashboardApiClientTest {
         assertEquals("500", url.queryParameter("limit"))
         assertEquals("0", url.queryParameter("offset"))
         assertEquals("latest", url.queryParameter("order"))
+        assertEquals("true", url.queryParameter("include_compacted"))
         assertEquals(2, messages.size)
         assertEquals("user", messages[0].role)
         assertEquals("assistant", messages[1].role)
@@ -1555,6 +1556,9 @@ class DashboardApiClientTest {
         val second = server.takeRequest().requestUrl!!
         assertEquals(listOf("0", "500"), listOf(first, second).map { it.queryParameter("offset") })
         assertEquals(listOf("mizu", "mizu"), listOf(first, second).map { it.queryParameter("profile") })
+        assertEquals(listOf("true", "true"), listOf(first, second).map { it.queryParameter("include_compacted") })
+        assertEquals(listOf("500", "500"), listOf(first, second).map { it.queryParameter("limit") })
+        assertEquals(listOf("oldest", "oldest"), listOf(first, second).map { it.queryParameter("order") })
         assertEquals((0..500).map(Int::toString), messages.map { it.id })
     }
 
@@ -1568,6 +1572,8 @@ class DashboardApiClientTest {
 
         val request = server.takeRequest().requestUrl!!
         assertEquals("latest", request.queryParameter("order"))
+        assertEquals("true", request.queryParameter("include_compacted"))
+        assertEquals("500", request.queryParameter("limit"))
         assertEquals("0", request.queryParameter("offset"))
         assertEquals(500, messages.size)
         assertEquals(1, server.requestCount)
