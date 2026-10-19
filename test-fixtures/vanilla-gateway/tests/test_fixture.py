@@ -18,6 +18,24 @@ from vanilla_gateway.evidence import EvidenceLog  # noqa: E402
 
 
 class FixtureTestCase(unittest.IsolatedAsyncioTestCase):
+    async def test_metadata_only_bind_preserves_http_history(self) -> None:
+        fixture, base_url = await self.start("initial_history_bind")
+        ws, _ = await self.connect(base_url)
+        for request_id, method, session_id in (
+            (1, "session.resume", fixture.scenario.stored_session_id),
+            (2, "session.activate", fixture.scenario.live_session_id),
+        ):
+            await self.rpc(ws, request_id, method, {"session_id": session_id, "omit_messages": True})
+            result = (await ws.receive_json())["result"]
+            self.assertEqual([], result["messages"])
+            self.assertEqual(2, result["message_count"])
+            self.assertEqual(fixture.scenario.live_session_id, result["session_id"])
+            self.assertFalse(result["running"])
+        async with self.session.get(f"{base_url}/api/sessions/{fixture.scenario.stored_session_id}/messages") as response:
+            self.assertIn("Durable Bot Chat history is ready.", await response.text())
+        await self.rpc(ws, 3, "session.resume", {"session_id": fixture.scenario.stored_session_id})
+        self.assertEqual(2, len((await ws.receive_json())["result"]["messages"]))
+
     async def test_quiet_turns_finish_and_publish_authoritative_unsolicited_state(self) -> None:
         fixture, base_url = await self.start("quiet_turn_recovery")
         ws, _ = await self.connect(base_url)

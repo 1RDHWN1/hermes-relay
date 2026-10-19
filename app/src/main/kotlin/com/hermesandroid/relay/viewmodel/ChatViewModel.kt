@@ -722,6 +722,12 @@ class ChatViewModel : ViewModel() {
     )
     private var deferredGatewayPrewarm: DeferredGatewayPrewarm? = null
     private var automaticGatewayPrewarmBlocked = false
+    private var memoryRecoverySelectionRequired = false
+
+    /** Startup-only latch. Keep saved session slots, drafts and checkpoints until explicit selection. */
+    fun pauseAutomaticSessionRestoreAfterMemoryFailure(paused: Boolean) {
+        memoryRecoverySelectionRequired = paused
+    }
     private var imageActivityJob: Job? = null
     private val historyLoadGeneration = AtomicInteger(0)
     private val sessionRefreshGeneration = AtomicInteger(0)
@@ -1769,6 +1775,7 @@ class ChatViewModel : ViewModel() {
                 return@launch
             }
             if (startingSessionId == null) {
+                memoryRecoverySelectionRequired = false
                 handler.setSessionId(preparedSessionId)
                 selectBackgroundProcessSession(preparedSessionId)
                 gatewayProcessController.sessionReady(preparedSessionId)
@@ -5055,6 +5062,7 @@ class ChatViewModel : ViewModel() {
         sessionId: String,
     ): Boolean {
         if (!selectConversationProfile(profileName, profile)) return false
+        memoryRecoverySelectionRequired = false
         if (activeProfileContextKey == contextKey && chatHandler?.currentSessionId?.value == sessionId &&
             currentSessionProfileName() == profileName
         ) {
@@ -5091,6 +5099,7 @@ class ChatViewModel : ViewModel() {
         contextKey: String,
     ): Boolean {
         if (!selectConversationProfile(profileName, profile)) return false
+        memoryRecoverySelectionRequired = false
         // A provisional phone Thread belongs to its original connection/chat_id
         // and cannot transfer to another profile. Exit it before binding or
         // persisting the destination draft so the next send uses session.create.
@@ -5147,7 +5156,7 @@ class ChatViewModel : ViewModel() {
 
     fun switchProfileContext(contextKey: String, sessionId: String?) {
         clearOpenedSessionOwner()
-        switchProfileContextInternal(contextKey, sessionId)
+        switchProfileContextInternal(contextKey, sessionId.takeUnless { memoryRecoverySelectionRequired })
     }
 
     /**
@@ -5159,7 +5168,9 @@ class ChatViewModel : ViewModel() {
      * profile/session tuple, the reducer converges it to ordinary global state.
      */
     fun reconcileProfileContext(contextKey: String, sessionId: String?) {
-        switchProfileContextInternal(contextKey, sessionId, reconciliation = true)
+        switchProfileContextInternal(
+            contextKey, sessionId.takeUnless { memoryRecoverySelectionRequired }, reconciliation = true,
+        )
     }
 
     private fun switchProfileContextInternal(
@@ -5622,6 +5633,9 @@ class ChatViewModel : ViewModel() {
     }
 
     private fun automaticGatewayWorkDeferred(sessionId: String?): Boolean {
+        // The empty recovery view still needs socket readiness. Only the saved
+        // session must stay detached until an explicit selection.
+        if (memoryRecoverySelectionRequired && sessionId != null) return true
         // The directory barrier exists only when this connection exposes a
         // Dashboard-backed, profile-scoped session directory. Legacy/test
         // Gateway bindings without that surface must retain socket readiness
@@ -5977,6 +5991,8 @@ class ChatViewModel : ViewModel() {
         if (supervisedModePolicy.enabled && !supervisedModePolicy.capabilities.newChat) return
         val handler = chatHandler ?: return
         recordPreResetEvidence(handler, "new_chat")
+        if (memoryRecoverySelectionRequired) persistFreshDraft(currentSessionProfileName())
+        memoryRecoverySelectionRequired = false
         // A new chat clears only the durable session identity. Keep the bound
         // profile/context so an All Profiles conversation becomes a fresh
         // draft for that same owner instead of falling back to the globally
@@ -6229,6 +6245,7 @@ class ChatViewModel : ViewModel() {
         val handler = chatHandler ?: return
         dismissChatFailure()
         if (streamingEndpoint != "gateway" && apiClient == null) return
+        memoryRecoverySelectionRequired = false
         exitProvisionalThread()
 
         // Keep a Gateway sibling alive and detach its callbacks. SSE remains a
@@ -8213,6 +8230,7 @@ class ChatViewModel : ViewModel() {
         handler: ChatHandler,
         sessionId: String,
     ): Boolean {
+        if (memoryRecoverySelectionRequired) return false
         val contextKey = activeProfileContextKey ?: return false
         val key = TurnCheckpointKey(contextKey, sessionId)
         val checkpoint = backgroundTurnCheckpoints.remove(key)
@@ -9104,6 +9122,11 @@ class ChatViewModel : ViewModel() {
         isolateComposer: Boolean = false,
     ) {
         AppAnalytics.onMessageSent()
+        // Sending from the recovery view explicitly chooses a fresh draft. Clear
+        // only its remembered selection, or a later readiness emission could
+        // reopen the old conversation while the new session is being created.
+        if (memoryRecoverySelectionRequired) persistFreshDraft(currentSessionProfileName())
+        memoryRecoverySelectionRequired = false
         val displayText = text.trim()
         val outboundText = transportText.trim()
         val interfaceContextPrompt = if (isolateComposer) {
@@ -9292,6 +9315,8 @@ class ChatViewModel : ViewModel() {
 
     fun startRealtimeAgentTurn(userText: String, chatSessionId: String?): String {
         val handler = chatHandler ?: return UUID.randomUUID().toString()
+        if (memoryRecoverySelectionRequired && chatSessionId == null) persistFreshDraft(currentSessionProfileName())
+        memoryRecoverySelectionRequired = false
         AppAnalytics.onMessageSent()
         val trimmed = userText.trim().ifBlank { "Listening..." }
         val userMessageId = UUID.randomUUID().toString()

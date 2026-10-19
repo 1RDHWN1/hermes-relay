@@ -4632,4 +4632,5 @@
     <string name="paired_devices_policy_failed">Die Sitzung konnte nicht verkürzt werden. Aktualisiere die Relay-Sitzungen und versuche eine kürzere Dauer, oder kopple erneut mit einem neuen, vom Betreiber genehmigten Code, um den Zugriff zu erneuern.</string>
     <string name="paired_devices_updating">Sitzung wird aktualisiert…</string>
     <string name="paired_devices_no_shorter_duration">Keine kürzere Vorgabe verfügbar. Du kannst diese Sitzung widerrufen oder zur Erneuerung erneut koppeln.</string>
+    <string name="crash_memory_recovery_body">Der App ist der Arbeitsspeicher ausgegangen. Das automatische Wiederöffnen von Unterhaltungen ist für diesen Start pausiert. Schließe diesen Bericht und wähle dann unter Sitzungen eine Unterhaltung aus oder starte einen neuen Chat. Gespeicherte Unterhaltungen und Entwürfe wurden nicht gelöscht. Aufgaben auf Hermes können noch laufen.</string>
 </resources>

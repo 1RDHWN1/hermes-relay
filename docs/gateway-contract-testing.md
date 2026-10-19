@@ -27,6 +27,11 @@ hermetic tests.
 
 ## Session directory boundary
 
+For duplicate resume-history memory pressure and post-OOM startup recovery, see
+[Android conversation memory recovery](android-memory-recovery.md). The
+`initial_history_bind` scenario also proves that `omit_messages` on resume and
+activation leaves HTTP history available.
+
 The Gateway fixture proves live chat transport, activity, reconnect, and
 authoritative post-turn history reconciliation. It is not the route authority
 for the session drawer. On the standard path, profile-scoped session browsing

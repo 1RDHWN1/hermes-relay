@@ -294,8 +294,24 @@ def _check_resume(methods: SourceFile) -> CheckResult:
     contract = SESSION_RESUME
     try:
         handler = methods.method_handler("session.resume")
-        text = methods.segment(handler)
-        strings = _string_constants(handler)
+        # Current upstream extracted resume into local helpers and a _Resume
+        # context. Follow only definitions reachable from this handler, so an
+        # unused legacy implementation cannot satisfy the contract.
+        definitions = {
+            node.name: node for node in methods.tree.body
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name != "_"
+        }
+        nodes = [handler]
+        seen = {id(handler)}
+        for node in nodes:
+            for call in ast.walk(node):
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name):
+                    target = definitions.get(call.func.id)
+                    if target is not None and id(target) not in seen:
+                        nodes.append(target)
+                        seen.add(id(target))
+        text = "\n".join(methods.segment(node) for node in nodes)
+        strings = set().union(*(_string_constants(node) for node in nodes))
         required_markers = (
             "db.get_session(",
             "db.resolve_resume_session_id(",
@@ -316,7 +332,7 @@ def _check_resume(methods: SourceFile) -> CheckResult:
         if not {4007, 4130}.issubset(
             {
                 child.value
-                for child in ast.walk(handler)
+                for node in nodes for child in ast.walk(node)
                 if isinstance(child, ast.Constant) and isinstance(child.value, int)
             }
         ):

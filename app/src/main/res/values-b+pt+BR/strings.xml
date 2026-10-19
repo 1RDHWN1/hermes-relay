@@ -4475,4 +4475,5 @@
     <string name="paired_devices_policy_failed">Não foi possível reduzir a duração da sessão. Atualize as sessões do Relay e tente uma duração menor, ou pareie novamente com um novo código aprovado pelo operador para renovar o acesso.</string>
     <string name="paired_devices_updating">Atualizando sessão…</string>
     <string name="paired_devices_no_shorter_duration">Não há uma duração predefinida mais curta. Você pode revogar esta sessão ou parear novamente para renovar o acesso.</string>
+    <string name="crash_memory_recovery_body">O aplicativo ficou sem memória. A reabertura automática de conversas está pausada nesta inicialização. Feche este relatório e escolha uma conversa em Sessões ou inicie um novo chat. As conversas e os rascunhos salvos não foram excluídos. O Hermes pode continuar trabalhando.</string>
 </resources>
