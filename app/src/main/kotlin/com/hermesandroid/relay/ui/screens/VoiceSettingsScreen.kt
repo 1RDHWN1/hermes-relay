@@ -3450,6 +3450,12 @@ private fun GlobalVoiceControlsCard(
             }
         }
 
+        Text(
+            text = stringResource(R.string.voice_settings_interaction_interruption_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         Text(
@@ -4577,6 +4583,7 @@ private fun standardConfigFieldLabel(key: String): String = when {
     key == "tts.provider" || key == "stt.provider" -> stringResource(R.string.voice_settings_label_provider)
     key == "stt.enabled" -> stringResource(R.string.voice_settings_stt_title)
     key == "voice.auto_tts" -> stringResource(R.string.voice_settings_auto_speak)
+    key == "voice.barge_in" -> stringResource(R.string.voice_settings_host_barge_in)
     key.endsWith(".model") || key.endsWith(".model_id") -> stringResource(R.string.voice_settings_label_model)
     key.endsWith(".voice") || key.endsWith(".voice_id") -> stringResource(R.string.voice_settings_label_voice)
     key.endsWith(".language") || key.endsWith(".language_code") -> stringResource(R.string.voice_settings_label_language)
@@ -4590,6 +4597,7 @@ private fun standardConfigFieldLabel(key: String): String = when {
 private fun standardConfigFieldDescription(field: ConfigSchemaField): String? = when {
     field.key == "tts.provider" -> stringResource(R.string.voice_settings_provider_desc)
     field.key == "voice.auto_tts" -> stringResource(R.string.voice_settings_auto_speak_desc)
+    field.key == "voice.barge_in" -> stringResource(R.string.voice_settings_host_barge_in_desc)
     field.key.startsWith("tts.") &&
         (field.key.endsWith(".model") || field.key.endsWith(".model_id")) -> stringResource(R.string.voice_settings_model_desc)
     field.key.endsWith(".voice") || field.key.endsWith(".voice_id") -> stringResource(R.string.voice_settings_voice_desc)

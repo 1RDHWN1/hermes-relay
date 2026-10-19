@@ -133,6 +133,7 @@ Change in **Settings → Voice → Interaction mode**. All three share the same 
 
 - Press and hold the mic while you speak.
 - Release to stop recording and send.
+- Hold does not disable **Listening → Phone interruption → Interrupt when I speak**. When that switch is on, the phone can still listen for a spoken interruption while Hermes thinks or speaks. Turn it off to avoid that listener during replies.
 - Good for noisy environments where the silence detector would trip early.
 
 ### Continuous
@@ -184,6 +185,17 @@ These controls always show and apply to both engines:
 
 ### Barge-in
 
+**Listening → Phone interruption** controls this phone's microphone, including
+on Standard connections without the Relay plugin. It applies in Tap, Hold, and
+Continuous modes. Turning it off stops the optional interruption listener; it
+does not change normal recording in the selected mode. Continuous mode can
+still start the next recording after the response finishes.
+
+**Advanced → Server voice config → Host barge-in** is separate: it changes
+Hermes host voice behavior (`voice.barge_in`). It does not disable the phone's
+listener. Changing an interaction mode or audio route preserves the phone
+interruption choice. The existing default remains on.
+
 Lets you interrupt the agent by speaking while it is thinking or talking. One
 listener stays active across the whole response, so the microphone does not
 re-arm between generation and playback. It is **on by default** to match Hermes
@@ -196,7 +208,7 @@ Voice and can be disabled at any time.
 - **Resume after interruption** — default on. After you interrupt, if you then stay quiet for ~600 ms, the agent resumes reading from the next sentence of its response. A quick breath or "wait, actually…" that you decide not to finish won't throw away its answer. Turn off if you'd rather a hard cut every time.
 - **VAD diagnostics** — optional Logcat detail for calibrated floor, RMS, threshold, phase, and decisions. Leave off unless tuning a device.
 
-**Device compatibility.** If your phone doesn't support hardware echo cancellation (`AcousticEchoCanceler`), you'll see a warning badge next to the master toggle: *"Your device may have limited echo cancellation. Barge-in quality will vary."* You can still enable barge-in, but expect more false triggers from the phone's own speaker feeding back into the mic. **Using headphones fixes this entirely** — the mic never hears the TTS output, so VAD has nothing to confuse.
+**Device compatibility.** If your phone doesn't support hardware echo cancellation (`AcousticEchoCanceler`), you'll see a warning badge next to the master toggle: *"Your device may have limited echo cancellation. Barge-in quality will vary."* Speaker audio can trigger false interruptions. Headphones reduce speaker feedback, but actual interruption behavior still needs testing on your device.
 
 Before playback, the app samples roughly 450 ms of room noise and uses its 90th
 percentile as the floor, with the same bounded generation/playback thresholds,
