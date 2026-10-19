@@ -782,7 +782,7 @@ fun ChatScreen(
     gitWorkspaceSummary: ChatGitWorkspaceSummary? = null,
     gitWorkspaceAvailable: Boolean = gitWorkspaceSummary != null,
     onNavigateToGitWorkspace: () -> Unit = {},
-    onBindStatusStripActions: (onModelClick: (() -> Unit)?, onEffortClick: (() -> Unit)?, effortLabel: String?) -> Unit = { _, _, _ -> },
+    onBindStatusStripActions: (onModelClick: (() -> Unit)?, onEffortClick: (() -> Unit)?, effortLabel: String?, modelEnabled: Boolean, effortEnabled: Boolean) -> Unit = { _, _, _, _, _ -> },
 ) {
     val responsiveLayout = chatResponsiveLayout(LocalConfiguration.current.screenWidthDp)
     val supervised = supervisedPolicy.enabled
@@ -4578,11 +4578,13 @@ fun ChatScreen(
                     if (modelControl != null) { { showModelSheet = true } } else null,
                     if (effortControl != null) { { showEffortSheet = true } } else null,
                     effortControl?.value,
+                    modelControl?.enabled == true,
+                    effortControl?.enabled == true,
                 )
             }
             DisposableEffect(Unit) {
                 onDispose {
-                    onBindStatusStripActions(null, null, null)
+                    onBindStatusStripActions(null, null, null, false, false)
                 }
             }
 

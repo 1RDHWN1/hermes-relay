@@ -397,6 +397,42 @@ class ChatInputBarTest {
     }
 
     @Test
+    fun `footer preserves picker disabled state and becomes interactive when ready`() {
+        var enabled by mutableStateOf(false)
+        var modelClicks = 0
+        var effortClicks = 0
+        compose.setContent {
+            MaterialTheme {
+                RelayStatusStrip(
+                    leadingBadge = {},
+                    routeLabel = "gateway",
+                    modelLabel = "model",
+                    effortLabel = "high",
+                    modelEnabled = enabled,
+                    effortEnabled = enabled,
+                    onModelClick = { modelClicks++ },
+                    onEffortClick = { effortClicks++ },
+                )
+            }
+        }
+        val model = compose.onNodeWithContentDescription("Select model")
+        val effort = compose.onNodeWithContentDescription("Select reasoning effort")
+        model.assertIsNotEnabled().performClick()
+        effort.assertIsNotEnabled().performClick()
+        compose.runOnIdle {
+            assertEquals(0, modelClicks)
+            assertEquals(0, effortClicks)
+            enabled = true
+        }
+        model.performClick()
+        effort.performClick()
+        compose.runOnIdle {
+            assertEquals(1, modelClicks)
+            assertEquals(1, effortClicks)
+        }
+    }
+
+    @Test
     fun `status strip effort pill keeps its own accessible name`() {
         compose.setContent {
             MaterialTheme {

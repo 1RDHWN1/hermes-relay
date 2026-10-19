@@ -57,6 +57,8 @@ fun RelayStatusStrip(
     onClick: (() -> Unit)? = null,
     onModelClick: (() -> Unit)? = null,
     onEffortClick: (() -> Unit)? = null,
+    modelEnabled: Boolean = true,
+    effortEnabled: Boolean = true,
     modelLabel: String? = null,
     effortLabel: String? = null,
     profileLabel: String? = null,
@@ -146,12 +148,14 @@ fun RelayStatusStrip(
                         label = modelLabel,
                         contentDescription = stringResource(R.string.cd_select_model),
                         onClick = onModelClick,
+                        enabled = modelEnabled,
                     )
                     if (onEffortClick != null && !effortLabel.isNullOrBlank()) {
                         StatusPill(
                             label = effortLabel,
                             contentDescription = stringResource(R.string.chat_select_reasoning_effort),
                             onClick = onEffortClick,
+                            enabled = effortEnabled,
                         )
                     }
                     if (!profileLabel.isNullOrBlank()) {
@@ -182,6 +186,7 @@ private fun StatusPill(
     label: String,
     contentDescription: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
@@ -194,7 +199,7 @@ private fun StatusPill(
                 ),
                 RoundedCornerShape(999.dp)
             )
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .semantics {
                 this.contentDescription = contentDescription
             }
@@ -206,7 +211,7 @@ private fun StatusPill(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.45f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.widthIn(max = 140.dp),
@@ -214,7 +219,7 @@ private fun StatusPill(
         Icon(
             imageVector = Icons.Filled.KeyboardArrowDown,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.45f),
             modifier = Modifier.size(14.dp),
         )
     }

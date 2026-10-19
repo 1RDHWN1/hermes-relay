@@ -1587,6 +1587,8 @@ fun RelayApp() {
         var onStatusStripModelClick by remember { mutableStateOf<(() -> Unit)?>(null) }
         var onStatusStripEffortClick by remember { mutableStateOf<(() -> Unit)?>(null) }
         var statusStripEffortLabel by remember { mutableStateOf<String?>(null) }
+        var statusStripModelEnabled by remember { mutableStateOf(false) }
+        var statusStripEffortEnabled by remember { mutableStateOf(false) }
         val appReady by connectionViewModel.isReady.collectAsState()
         val initialChatSettled by chatViewModel.initialChatSettled.collectAsState()
         val startupSessionsLoading by chatViewModel.isLoadingSessions.collectAsState()
@@ -2224,6 +2226,8 @@ fun RelayApp() {
                         trailing = "$footerModelLabel / $profileLabel",
                         modelLabel = footerModelLabel,
                         effortLabel = statusStripEffortLabel,
+                        modelEnabled = statusStripModelEnabled,
+                        effortEnabled = statusStripEffortEnabled,
                         profileLabel = "/ $profileLabel",
                         onModelClick = if (currentRoute == Screen.Chat.route) onStatusStripModelClick else null,
                         onEffortClick = if (currentRoute == Screen.Chat.route) onStatusStripEffortClick else null,
@@ -2608,10 +2612,12 @@ fun RelayApp() {
                                     voicePreferences.setPresentationMode(mode)
                                 }
                             },
-                            onBindStatusStripActions = { modelClick, effortClick, effortLabel ->
+                            onBindStatusStripActions = { modelClick, effortClick, effortLabel, modelEnabled, effortEnabled ->
                                 onStatusStripModelClick = modelClick
                                 onStatusStripEffortClick = effortClick
                                 statusStripEffortLabel = effortLabel
+                                statusStripModelEnabled = modelEnabled
+                                statusStripEffortEnabled = effortEnabled
                             },
                             openAgentSheetOnEntry = openAgentSheetArg,
                             onAgentSheetArgConsumed = {

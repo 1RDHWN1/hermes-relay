@@ -710,6 +710,8 @@ Standard Chat exposes model and reasoning selection in the persistent status
 footer. The connection status keeps its own line; selector controls wrap below
 it at compact widths or large font scales. Attachment, voice, send, stop, steer,
 and queue actions remain in the composer with their existing callbacks.
+Footer selectors retain the model and reasoning controls' readiness and
+streaming restrictions, including disabled accessibility semantics.
 
 - **Context preview** — the Injected context sheet describes the bound chat transport, not a delivery receipt. Standard Gateway chat has no general per-turn system-context slot: phone status, the Android client preamble, media hints, and interface-context blocks are omitted. Phone status and turn context show an explicit unsupported note. API-only chats retain the opted-in context and sharing controls; the Settings example is labeled API-only. Gateway persona and optional Relay-reported configuration remain separately server-owned. No context is prepended to user text or written into the personality slot to bypass this boundary.
 - **Top bar and Profile Shelf (three-layer agent model).** Layout from left to right:
