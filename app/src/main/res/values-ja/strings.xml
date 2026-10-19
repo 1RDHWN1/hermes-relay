@@ -4631,4 +4631,6 @@
     <string name="voice_settings_interaction_interruption_hint">「押し続けて話す」では、ボタンを押している間に録音します。応答中に音声による割り込みを聞き取らないようにするには、下の「スマートフォンでの割り込み」をオフにしてください。</string>
     <string name="voice_settings_host_barge_in">ホストでの割り込み</string>
     <string name="voice_settings_host_barge_in_desc">Hermesホストの音声モードでの割り込みを制御します。このスマートフォンのマイクには影響しません。「Listening」の「スマートフォンでの割り込み」を使用してください。</string>
+    <string name="voice_settings_speak_tool_updates">ツールの通知を読み上げる</string>
+    <string name="voice_settings_speak_tool_updates_desc">組み込みのツール通知は英語です。これらの通知なしでアシスタントの回答を聞くにはオフにしてください。「最終回答のみ」でも通知は読み上げられません。</string>
 </resources>

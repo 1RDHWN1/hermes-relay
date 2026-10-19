@@ -2623,6 +2623,7 @@ private fun SettingSwitchRow(
     title: String,
     detail: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -2630,7 +2631,12 @@ private fun SettingSwitchRow(
             Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            modifier = Modifier.semantics { contentDescription = title },
+        )
     }
 }
 
@@ -3529,6 +3535,18 @@ private fun AnswerDeliveryCard(
                 scope.launch { prefsRepo.setFinalAnswerOnly(enabled) }
             },
         )
+        if (VoiceEngineMode.fromStorage(voiceSettings.engineMode) == VoiceEngineMode.HermesVoiceOutput) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+            SettingSwitchRow(
+                title = stringResource(R.string.voice_settings_speak_tool_updates),
+                detail = stringResource(R.string.voice_settings_speak_tool_updates_desc),
+                checked = voiceSettings.speakToolUpdates,
+                enabled = !voiceSettings.finalAnswerOnly,
+                onCheckedChange = { enabled ->
+                    scope.launch { prefsRepo.setSpeakToolUpdates(enabled) }
+                },
+            )
+        }
     }
 }
 

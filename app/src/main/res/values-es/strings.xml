@@ -4327,4 +4327,6 @@
     <string name="voice_settings_interaction_interruption_hint">El modo de mantener pulsado graba mientras se pulsa el botón. Para que el teléfono no escuche interrupciones de voz durante las respuestas, desactiva Interrupción en el teléfono abajo.</string>
     <string name="voice_settings_host_barge_in">Interrupción en el host</string>
     <string name="voice_settings_host_barge_in_desc">Controla las interrupciones en el modo de voz del host Hermes, no el micrófono de este teléfono. Usa Interrupción en el teléfono en Listening.</string>
+    <string name="voice_settings_speak_tool_updates">Leer avisos de herramientas</string>
+    <string name="voice_settings_speak_tool_updates_desc">Los avisos predefinidos de herramientas están en inglés. Desactiva esta opción para oír las respuestas sin estos avisos. Solo la respuesta final también los silencia.</string>
 </resources>

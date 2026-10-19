@@ -70,8 +70,12 @@ the focused playback matrix in [voice diagnosis](../standard-voice-fallback.md#m
   all-mode listener policy and stored choices; they do not certify microphone or
   speaker behavior. PR #702's default change and PR #684's Stop policy remain
   separate decisions.
-- Localize or explicitly control brokered tool-status speech. Hard-coded English
-  narration is not appropriate for every configured TTS language.
+- Confirm [#753](https://github.com/Codename-11/hermes-relay/issues/753) with a
+  non-English voice: disable Speak tool updates, retain intermediate and final
+  assistant readback, and check audible output. Offline regressions verify
+  that English stock updates can be muted independently; they do not establish
+  pronunciation quality or physical playback. Automatic translation would
+  require an explicit speech-language source rather than inferring app locale.
 
 ---
 

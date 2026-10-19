@@ -4375,4 +4375,6 @@
     <string name="voice_settings_interaction_interruption_hint">В режиме удержания запись идёт, пока нажата кнопка. Чтобы телефон не слушал голосовые прерывания во время ответов, отключите ниже Прерывание на телефоне.</string>
     <string name="voice_settings_host_barge_in">Прерывание на хосте</string>
     <string name="voice_settings_host_barge_in_desc">Управляет прерываниями в голосовом режиме хоста Hermes, но не микрофоном этого телефона. Используйте Прерывание на телефоне на вкладке Listening.</string>
+    <string name="voice_settings_speak_tool_updates">Озвучивать уведомления инструментов</string>
+    <string name="voice_settings_speak_tool_updates_desc">Встроенные уведомления инструментов звучат на английском. Отключите их, чтобы слышать ответы ассистента без этих уведомлений. Режим «Только финальный ответ» также отключает их озвучивание.</string>
 </resources>
