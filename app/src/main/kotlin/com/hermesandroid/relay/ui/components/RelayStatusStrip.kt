@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -45,6 +47,7 @@ import com.hermesandroid.relay.ui.theme.relayMetadataStyle
 import com.hermesandroid.relay.ui.theme.relayPanel
 import kotlin.math.abs
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RelayStatusStrip(
     leadingBadge: @Composable () -> Unit,
@@ -66,6 +69,7 @@ fun RelayStatusStrip(
     reconnecting: Boolean = false,
     maxContentWidth: Dp? = null,
 ) {
+    val hasModelSelector = onModelClick != null && !modelLabel.isNullOrBlank()
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
@@ -120,36 +124,7 @@ fun RelayStatusStrip(
                     }
                 }
                 Spacer(modifier = Modifier.width(6.dp))
-                if (onModelClick != null && !modelLabel.isNullOrBlank()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        StatusPill(
-                            label = modelLabel,
-                            contentDescription = stringResource(R.string.cd_select_model),
-                            onClick = onModelClick,
-                        )
-
-                        if (onEffortClick != null && !effortLabel.isNullOrBlank()) {
-                            StatusPill(
-                                label = effortLabel,
-                                contentDescription = stringResource(R.string.chat_select_reasoning_effort),
-                                onClick = onEffortClick,
-                            )
-                        }
-
-                        if (!profileLabel.isNullOrBlank()) {
-                            Text(
-                                text = profileLabel,
-                                style = relayMetadataStyle(),
-                                color = RelayRefresh.Muted,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                } else {
+                if (!hasModelSelector) {
                     Text(
                         text = trailing,
                         style = relayMetadataStyle(),
@@ -157,6 +132,37 @@ fun RelayStatusStrip(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                }
+            }
+            if (onModelClick != null && !modelLabel.isNullOrBlank()) {
+                // Keep status readable independently of model-label length.
+                // Each selector can wrap at compact widths and large font scale.
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    StatusPill(
+                        label = modelLabel,
+                        contentDescription = stringResource(R.string.cd_select_model),
+                        onClick = onModelClick,
+                    )
+                    if (onEffortClick != null && !effortLabel.isNullOrBlank()) {
+                        StatusPill(
+                            label = effortLabel,
+                            contentDescription = stringResource(R.string.chat_select_reasoning_effort),
+                            onClick = onEffortClick,
+                        )
+                    }
+                    if (!profileLabel.isNullOrBlank()) {
+                        Text(
+                            text = profileLabel,
+                            style = relayMetadataStyle(),
+                            color = RelayRefresh.Muted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
         }

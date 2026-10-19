@@ -16,6 +16,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.assertIsDisplayed
+import com.github.takahirom.roborazzi.captureRoboImage
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
@@ -351,6 +354,45 @@ class ChatInputBarTest {
             org.junit.Assert.assertTrue(
                 pill.fetchSemanticsNode().boundsInRoot.width <= 480,
             )
+        }
+    }
+
+    @Test
+    @Config(sdk = [34], qualifiers = "w320dp-h568dp-xhdpi")
+    fun `compact footer keeps both selectors reachable with large text`() {
+        compose.setContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 1.6f),
+            ) {
+                com.hermesandroid.relay.ui.theme.HermesRelayTheme(themePreference = "dark") {
+                    RelayStatusStrip(
+                        leadingBadge = {
+                            ChatTransportStatusBadge(
+                                status = ChatTransportStatus(
+                                    tier = ChatTransportTier.Gateway,
+                                    tone = ChatTransportTone.Active,
+                                    reason = "Connected",
+                                    detail = "Fixture",
+                                ),
+                            )
+                        },
+                        routeLabel = "Secure Link",
+                        modelLabel = "anthropic-claude-opus-long-model-name",
+                        effortLabel = "Extra high reasoning",
+                        profileLabel = "Research profile",
+                        onModelClick = {},
+                        onEffortClick = {},
+                    )
+                }
+            }
+        }
+        compose.onRoot().captureRoboImage("build/ui-evidence/composer-footer-compact-large.png")
+        compose.onNodeWithText(ChatTransportTier.Gateway.label).assertIsDisplayed()
+        for (description in listOf("Select model", "Select reasoning effort")) {
+            val node = compose.onNodeWithContentDescription(description)
+            node.assertIsDisplayed()
+            node.assertTouchTargetAtLeast(minTouchPx)
         }
     }
 
