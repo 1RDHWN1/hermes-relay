@@ -47,6 +47,26 @@ drain, and cleanup. If synthesis starvation dominates, evaluate coalescing again
 first-audio latency before increasing queue depth. See
 [fallback diagnosis](../standard-voice-fallback.md). No gapless device claim yet.
 
+## Complete the compound missing-speech investigation
+
+Issue [#704](https://github.com/Codename-11/hermes-relay/issues/704) also requires
+physical confirmation across basic file playback and streaming PCM; source and
+synthetic-sink regressions cannot certify the reported devices/providers. See
+the focused playback matrix in [voice diagnosis](../standard-voice-fallback.md#missing-speech-and-playback-completion).
+
+- Capture a sanitized per-failure trace for the reported Final answer only case
+  that issues no synthesis request. The production observer fixture submits the
+  settled final bubble; this does not establish the reporter's runtime cause.
+- Resolve the separate server configuration defect where a profile switches
+  `tts.provider` to ElevenLabs without a model and inherits the Relay renderer's
+  `xai-tts` model. Preserve explicit overrides and use the selected provider's
+  defaults; cover both global and profile configuration before changing it.
+- Decide how phone-local interruption should interact with Hold mode and how to
+  distinguish it from host barge-in controls. PR #702 changes the default; it does
+  not fix PCM truncation. PR #684's playback-only Stop policy is separate work.
+- Localize or explicitly control brokered tool-status speech. Hard-coded English
+  narration is not appropriate for every configured TTS language.
+
 ---
 
 ## Confirm the reported Android 16 native password handoff

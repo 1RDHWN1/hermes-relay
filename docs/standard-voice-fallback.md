@@ -71,3 +71,47 @@ Neither change is justified as a complete audible fix by the supplied traces.
 For the remaining device comparison, use replies with many short sentences and
 with a few long sentences, record these rows, and compare decoded-file boundaries
 with an audio recording. See the tracked follow-up in [TODO](project/TODO.md).
+
+## Missing speech and playback completion
+
+Missing words or sentences in [#704](https://github.com/Codename-11/hermes-relay/issues/704)
+are distinct from the inter-sentence pauses above. Android must retain ownership
+until the chat observer, synthesis queues, Media3 playlist, pending PCM writes,
+and hardware PCM cursor have drained. A tool-call gap is not turn completion.
+
+File playback includes items already handed to Media3, including buffering
+items. Streaming playback accepts whole-sentence PCM frames as well as small
+provider chunks. The writer advances by the actual accepted byte count, starts
+before its stopped buffer fills, and retries unwritten suffixes. Standard speech
+uses one ordered IO writer and waits for it before consuming socket completion.
+Successful Relay renderer chunks also force-start any short prebuffered tail.
+Stop invalidates queued writes and pauses the native track without waiting for
+a blocked write to finish. A replacement stream cannot reuse old audio work.
+
+On Android 12 and newer, the application prebuffer controls startup and the
+native refill threshold is one frame, allowing short speech after a tool gap.
+Older Android versions receive bounded silent tail padding at stream completion
+to satisfy their native refill threshold. These mechanisms do not synthesize
+replacement words or change the provider's PCM samples.
+
+Current upstream's `hermes_cli/web_routers/audio.py` owns `/api/audio/speak-stream`.
+At upstream commit `046094df28b712f62a5e3c728a9e59da05dcbf1e`,
+`_SyncSentencePCMStreamer.stream` yields a complete decoded sentence, and the
+socket producer waits for further text across idle tool intervals. Android must
+not depend on server-side frame splitting or silence keepalives.
+
+`RealtimePcmPlayerWriteTest` exercises the production writer with a finite fake
+AudioTrack and synthetic PCM, including 90 KB frames, short writes, underruns,
+drain accounting, and concurrent Stop. `StandardVoiceTurnPlaybackTest` exercises
+the production observer and speech queue through tool gaps, final-only text,
+delayed IO, socket completion, and replacement-stream fencing.
+`VoiceFilePlaybackCompletionTest` covers the Media3 completion handoff.
+These tests prove software ownership and sample preservation, not heard playback.
+
+For a coordinated physical check, repeat a three-sentence plain reply and a
+reply with a tool call on both basic file synthesis and streaming PCM. Compare
+the opening and final words against the visible reply, test Hold and Continuous
+with phone-local interruption off, then test explicit Stop and a new turn.
+Include a short final utterance after a gap and a non-chunked provider. Record
+the exact APK, Android version, resolved audio route, and content-free byte/frame
+counts. Do not include conversation text, credentials, or raw provider payloads.
