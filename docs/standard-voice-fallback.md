@@ -96,6 +96,20 @@ with an audio recording. See the tracked follow-up in [TODO](project/TODO.md).
 
 ## Missing speech and playback completion
 
+Final answer only waits for the chat run to settle before submitting the last
+non-empty assistant bubble. Message, run-state, and session notifications are
+delivered independently; the speech observer uses them as wakeups and reads
+their current values on Main before checking session ownership and completion.
+This prevents a cached idle value from retiring the observer at an
+empty placeholder, or delayed message delivery from selecting old commentary.
+Sanitization may still leave no speakable text, such as a code-only answer.
+
+Offline observer/client tests cover delayed notifications, Standard streaming
+and file fallback, and silent intermediate tool activity. These reproduce a
+missing-request race, but do not establish the cause of the reporter's original
+capture in [#751](https://github.com/Codename-11/hermes-relay/issues/751) or certify
+live Edge synthesis and audible playback.
+
 Missing words or sentences in [#704](https://github.com/Codename-11/hermes-relay/issues/704)
 are distinct from the inter-sentence pauses above. Android must retain ownership
 until the chat observer, synthesis queues, Media3 playlist, pending PCM writes,

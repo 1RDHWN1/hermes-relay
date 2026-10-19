@@ -4910,13 +4910,23 @@ class VoiceViewModel(application: Application) : AndroidViewModel(application) {
             ?: VoiceTurnSessionFence(chatVm.currentSessionId.value).also {
                 voiceTurnSessionFence = it
             }
+        val messagesFlow = chatVm.messages
+        val runActiveFlow = chatVm.isStreaming
+        val sessionIdFlow = chatVm.currentSessionId
         streamObserverJob = viewModelScope.launch {
             combine(
-                chatVm.messages,
-                chatVm.isStreaming,
-                chatVm.currentSessionId,
-            ) { messages, runActive, sessionId -> Triple(messages, runActive, sessionId) }
-                .collect { (messages, runActive, sessionId) ->
+                messagesFlow,
+                runActiveFlow,
+                sessionIdFlow,
+            ) { _, _, _ -> Unit }
+                .collect {
+                    // These chat flows are updated on Main, but combine delivers
+                    // each source independently. Read their current values on Main:
+                    // a cached idle flag paired with a new empty placeholder can
+                    // otherwise retire the observer before the answer arrives.
+                    val messages = messagesFlow.value
+                    val runActive = runActiveFlow.value
+                    val sessionId = sessionIdFlow.value
                     if (!sessionFence.accepts(sessionId, messages)) {
                         // Session id and message history are independent flows.
                         // During session creation/adoption, combine can briefly

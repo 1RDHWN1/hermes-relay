@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Fixed
 
+- Android prevents a chat-state race from dropping Final answer only speech requests. (#751)
 - Plugin uses the selected speech renderer's model and voice defaults when a profile changes provider, while preserving explicit selections. (#750)
 - Android preserves whole-sentence streaming audio and short replies after tool-call gaps, and drains delivered PCM before ending speech. (#704)
 - Android avoids redundant conversation history in Gateway send/recovery responses and pauses automatic conversation reopening after a recorded out-of-memory crash, preserving saved conversations and drafts. (#700)
