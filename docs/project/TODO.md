@@ -54,9 +54,12 @@ physical confirmation across basic file playback and streaming PCM; source and
 synthetic-sink regressions cannot certify the reported devices/providers. See
 the focused playback matrix in [voice diagnosis](../standard-voice-fallback.md#missing-speech-and-playback-completion).
 
-- Capture a sanitized per-failure trace for the reported Final answer only case
-  that issues no synthesis request. The production observer fixture submits the
-  settled final bubble; this does not establish the reporter's runtime cause.
+- Confirm Final answer only on the reported Standard route in
+  [#751](https://github.com/Codename-11/hermes-relay/issues/751). Offline tests
+  reproduce premature observer retirement when a new placeholder is paired
+  with a delayed run-state notification; the observer now reads current state.
+  Reporter confirmation and a sanitized per-failure trace are still needed to
+  establish whether this caused the original missing synthesis request.
 - Obtain reporter confirmation of live ElevenLabs synthesis after the provider
   default-selection fix in [#750](https://github.com/Codename-11/hermes-relay/issues/750).
   Offline configuration and request-builder tests do not certify provider
