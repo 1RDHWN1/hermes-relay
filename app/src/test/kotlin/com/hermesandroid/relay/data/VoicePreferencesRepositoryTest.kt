@@ -22,6 +22,24 @@ class VoicePreferencesRepositoryTest {
     }
 
     @Test
+    fun interactionModeAndAudioRouteChangesPreserveExplicitPhoneInterruptionChoice() = runTest {
+        val store = InMemoryVoicePreferencesDataStore()
+        val voice = VoicePreferencesRepository(store)
+        val interruption = BargeInPreferencesRepository(store)
+        for (enabled in listOf(false, true)) {
+            interruption.setEnabled(enabled)
+            for (mode in listOf("hold", "tap", "continuous")) {
+                voice.setInteractionMode(mode)
+                for (route in listOf(VoiceAudioRoute.Standard, VoiceAudioRoute.Relay)) {
+                    voice.setAudioRoute(route)
+                    assertEquals(enabled, interruption.flow.first().enabled)
+                    assertEquals(mode, voice.settings.first().interactionMode)
+                }
+            }
+        }
+    }
+
+    @Test
     fun realtimeSelectionPersistsPerConnectionAndProfile() = runTest {
         repository.setActiveScope("connection-a", "coder")
         repository.setRealtimeSelection(
