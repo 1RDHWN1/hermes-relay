@@ -77,6 +77,19 @@ class SessionMessagePaginationTest {
     }
 
     @Test
+    fun `message safety bound fails without returning a partial transcript`() = runTest {
+        var calls = 0
+        val result = loadSessionMessages(SessionMessageLoadMode.COMPLETE) { request ->
+            calls++
+            Result.success(page(request.offset, 500, returned = 500))
+        }
+
+        assertEquals(101, calls)
+        assertEquals(SessionTranscriptTooLargeException::class, result.exceptionOrNull()?.let { it::class })
+        assertEquals(null, result.getOrNull())
+    }
+
+    @Test
     fun `payload safety bound fails clearly before another page`() = runTest {
         val result = loadSessionMessages(SessionMessageLoadMode.COMPLETE) {
             Result.success(

@@ -716,7 +716,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def test_contract_manifests_select_upstream_contracts(self) -> None:
         self.assertEqual(
-            ("gateway.session_resume_durable",),
+            ("gateway.session_resume_durable", "gateway.session_activate_live"),
             load_scenario("initial_history_bind").contract_requirements,
         )
         self.assertEqual(
