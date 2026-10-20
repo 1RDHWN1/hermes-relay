@@ -7,6 +7,7 @@ from typing import Any
 
 from .providers.base import ProviderInfo, VoiceProvider
 from .providers.elevenlabs_tts import ElevenLabsTTSProvider
+from .providers.gemini_live import GeminiLiveProvider
 from .providers.openai_tts import OpenAITTSProvider
 from .providers.openai_realtime import OpenAIRealtimeProvider
 from .providers.stub import StubToneProvider
@@ -56,6 +57,7 @@ class ProviderRegistry:
 def default_registry() -> ProviderRegistry:
     registry = ProviderRegistry()
     registry.register(ElevenLabsTTSProvider.info, ElevenLabsTTSProvider)
+    registry.register(GeminiLiveProvider.info, GeminiLiveProvider)
     registry.register(OpenAITTSProvider.info, OpenAITTSProvider)
     registry.register(OpenAIRealtimeProvider.info, OpenAIRealtimeProvider)
     registry.register(StubToneProvider.info, StubToneProvider)

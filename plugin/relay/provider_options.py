@@ -85,6 +85,40 @@ OPENAI_REALTIME_VOICES = (
 )
 OPENAI_RECOMMENDED_VOICES = ("marin", "cedar", "coral")
 
+GEMINI_LIVE_VOICES = (
+    "Zephyr",
+    "Puck",
+    "Charon",
+    "Kore",
+    "Fenrir",
+    "Leda",
+    "Orus",
+    "Aoede",
+    "Callirrhoe",
+    "Autonoe",
+    "Enceladus",
+    "Iapetus",
+    "Umbriel",
+    "Algieba",
+    "Despina",
+    "Erinome",
+    "Algenib",
+    "Rasalgethi",
+    "Laomedeia",
+    "Achernar",
+    "Alnilam",
+    "Schedar",
+    "Gacrux",
+    "Pulcherrima",
+    "Achird",
+    "Zubenelgenubi",
+    "Vindemiatrix",
+    "Sadachbia",
+    "Sadaltager",
+    "Sulafat",
+)
+GEMINI_RECOMMENDED_VOICES = ("Kore", "Puck", "Charon")
+
 _OPTION_CACHE: dict[tuple[str, str, str], tuple[float, dict[str, Any]]] = {}
 
 
@@ -174,6 +208,8 @@ def fetch_realtime_provider_options(
         result = _fetch_xai_provider_options(xai_auth=xai_auth)
     elif provider_id == "openai_realtime":
         result = _openai_realtime_static_provider_options()
+    elif provider_id == "gemini_live":
+        result = _gemini_live_static_provider_options()
     else:
         result = static_provider_options()
     _cache_put(cache_key, result)
@@ -741,6 +777,45 @@ def _openai_realtime_static_provider_options() -> dict[str, Any]:
             "source": "openai_docs",
             "message": (
                 "OpenAI realtime voice choices are advertised from the official "
+                "docs/API schema; no general voice-list endpoint is used."
+            ),
+        },
+    }
+
+
+def _gemini_live_static_provider_options() -> dict[str, Any]:
+    return {
+        "provider": {
+            "voice_groups": [
+                {
+                    "id": "gemini_live_builtin",
+                    "label": "Gemini Live voices",
+                    "values": list(GEMINI_LIVE_VOICES),
+                    "source": "google_docs",
+                    "recommended": list(GEMINI_RECOMMENDED_VOICES),
+                }
+            ],
+            "voice_metadata": _voice_metadata(
+                GEMINI_LIVE_VOICES,
+                source="google_docs",
+                recommended=GEMINI_RECOMMENDED_VOICES,
+            ),
+            "model_voice_compatibility": {
+                "gemini-3.1-flash-live-preview": list(GEMINI_LIVE_VOICES),
+                "gemini-2.5-flash-native-audio-preview-12-2025": list(
+                    GEMINI_LIVE_VOICES
+                ),
+                "gemini-3.8-live": list(GEMINI_LIVE_VOICES),
+            },
+            "recommended_voices": list(GEMINI_RECOMMENDED_VOICES),
+            "requires_manual_id": False,
+        },
+        "dynamic": {
+            "attempted": False,
+            "status": "static",
+            "source": "google_docs",
+            "message": (
+                "Gemini Live voice choices are advertised from the official "
                 "docs/API schema; no general voice-list endpoint is used."
             ),
         },

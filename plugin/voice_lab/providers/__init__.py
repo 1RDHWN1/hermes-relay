@@ -8,6 +8,7 @@ from .base import (
     VoiceRequest,
     VoiceResponse,
 )
+from .gemini_live import GeminiLiveProvider
 from .openai_tts import OpenAITTSProvider
 from .openai_realtime import OpenAIRealtimeProvider
 from .stub import StubToneProvider
@@ -15,6 +16,7 @@ from .xai_tts import XAITTSProvider
 from .xai_realtime import XAIRealtimeProvider
 
 __all__ = [
+    "GeminiLiveProvider",
     "OpenAIRealtimeProvider",
     "OpenAITTSProvider",
     "ProviderInfo",
