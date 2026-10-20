@@ -171,6 +171,7 @@ class GeminiLiveRealtimeAgentConnection:
         self._input_transcript = ""
         self._output_transcript = ""
         self._tool_names: dict[str, str] = {}
+        self._pending_tool_events: list[ProviderEvent] = []
 
     async def configure(self) -> None:
         await self.socket.send_json(_setup_message(self.config))
@@ -329,6 +330,8 @@ class GeminiLiveRealtimeAgentConnection:
                 },
             ),
         ]
+        events.extend(self._pending_tool_events)
+        self._pending_tool_events = []
         self._in_turn = False
         self._input_transcript = ""
         self._output_transcript = ""
@@ -379,6 +382,12 @@ class GeminiLiveRealtimeAgentConnection:
         return []
 
     def _tool_call_events(self, tool_call: dict[str, Any]) -> list[ProviderEvent]:
+        # Buffer function calls until the turn ends: the broker contract
+        # (mirroring OpenAI's response.done handling) expects
+        # FUNCTION_CALL_COMPLETED after the response's AUDIO_DONE /
+        # RESPONSE_DONE. Emitting mid-turn lets the still-open response
+        # claim the broker's forced-summary slot, and the actual summary
+        # response that follows gets suppressed as a duplicate.
         events: list[ProviderEvent] = []
         calls = tool_call.get("functionCalls")
         if not isinstance(calls, list):
@@ -398,7 +407,7 @@ class GeminiLiveRealtimeAgentConnection:
                 name=name,
                 arguments=arguments,
             )
-            events.append(
+            self._pending_tool_events.append(
                 ProviderEvent(
                     ProviderEventKind.FUNCTION_CALL_COMPLETED,
                     response_id=self._response_id(),

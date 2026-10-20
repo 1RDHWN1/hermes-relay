@@ -231,9 +231,9 @@ class GeminiLiveRealtimeAgentProviderTests(unittest.IsolatedAsyncioTestCase):
                 ProviderEventKind.INPUT_TRANSCRIPT_FINAL,
                 ProviderEventKind.RESPONSE_STARTED,
                 ProviderEventKind.AUDIO_DELTA,
-                ProviderEventKind.FUNCTION_CALL_COMPLETED,
                 ProviderEventKind.AUDIO_DONE,
                 ProviderEventKind.RESPONSE_DONE,
+                ProviderEventKind.FUNCTION_CALL_COMPLETED,
                 ProviderEventKind.ERROR,
             ],
         )
@@ -241,7 +241,7 @@ class GeminiLiveRealtimeAgentProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(events[2].payload["delta"], " jarvis")
         self.assertEqual(events[3].payload["text"], "halo jarvis")
         self.assertEqual(events[5].payload["audio"], pcm)
-        call = events[6].payload["call"]
+        call = events[8].payload["call"]
         self.assertEqual(call.call_id, "call-1")
         self.assertEqual(call.name, "hermes_run_task")
         self.assertEqual(call.arguments, {"text": "cek status"})
@@ -250,17 +250,21 @@ class GeminiLiveRealtimeAgentProviderTests(unittest.IsolatedAsyncioTestCase):
     async def test_tool_result_uses_remembered_name(self) -> None:
         fake_socket = FakeGeminiSocket()
         connection, _ = await _connect(fake_socket)
-        fake_socket.incoming.append(
-            {
-                "toolCall": {
-                    "functionCalls": [
-                        {"id": "call-9", "name": "hermes_get_status", "args": {}}
-                    ]
-                }
-            }
+        fake_socket.incoming.extend(
+            [
+                {
+                    "toolCall": {
+                        "functionCalls": [
+                            {"id": "call-9", "name": "hermes_get_status", "args": {}}
+                        ]
+                    }
+                },
+                {"serverContent": {"turnComplete": True}},
+            ]
         )
-        async for _event in connection.events():
-            break
+        async for event in connection.events():
+            if event.kind == ProviderEventKind.FUNCTION_CALL_COMPLETED:
+                break
         fake_socket.sent.clear()
         await connection.send_tool_result("call-9", {"status": "idle"})
         response = fake_socket.sent[-1]["toolResponse"]["functionResponses"][0]
