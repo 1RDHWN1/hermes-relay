@@ -6001,10 +6001,18 @@ def _realtime_provider_auth_status(config: RelayConfig) -> dict[str, Any]:
             "VOICE_TOOLS_OPENAI_KEY",
         )
     )
+    gemini_env_names = _configured_env_names(
+        (
+            "GEMINI_API_KEY",
+            "GOOGLE_API_KEY",
+        )
+    )
     status["xai_env"] = bool(xai_env_names)
     status["xai_env_names"] = xai_env_names
     status["openai_env"] = bool(openai_env_names)
     status["openai_env_names"] = openai_env_names
+    status["gemini_env"] = bool(gemini_env_names)
+    status["gemini_env_names"] = gemini_env_names
     return status
 
 
