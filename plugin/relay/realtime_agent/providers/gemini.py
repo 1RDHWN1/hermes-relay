@@ -544,16 +544,19 @@ class _AioHttpGeminiProviderSocket:
 
     async def receive_json(self) -> dict[str, Any]:
         msg = await self._ws.receive()
-        if msg.type == aiohttp.WSMsgType.TEXT:
+        if msg.type in (aiohttp.WSMsgType.TEXT, aiohttp.WSMsgType.BINARY):
+            # BidiGenerateContent delivers its JSON messages in binary
+            # frames (unlike OpenAI Realtime's text frames).
+            data = msg.data
+            if isinstance(data, bytes):
+                data = data.decode("utf-8", errors="replace")
             try:
-                payload = json.loads(msg.data)
+                payload = json.loads(data)
             except json.JSONDecodeError as exc:
                 raise ProviderRunError("Gemini Live returned non-JSON text") from exc
             if not isinstance(payload, dict):
                 raise ProviderRunError("Gemini Live returned a non-object event")
             return payload
-        if msg.type == aiohttp.WSMsgType.BINARY:
-            raise ProviderRunError("Gemini Live returned an unexpected binary frame")
         if msg.type == aiohttp.WSMsgType.ERROR:
             raise ProviderRunError(
                 f"Gemini Live websocket error: {self._ws.exception()}"
