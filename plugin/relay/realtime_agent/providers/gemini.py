@@ -218,6 +218,10 @@ class GeminiLiveRealtimeAgentConnection:
 
     async def send_tool_result(self, call_id: str, output: dict[str, Any]) -> None:
         name = self._tool_names.get(call_id, "")
+        # scheduling=SILENT keeps Gemini from auto-generating a spoken reply
+        # to the tool result: the broker owns delivery and explicitly
+        # requests the summary response (OpenAI semantics, where a function
+        # output never triggers generation on its own).
         await self.socket.send_json(
             {
                 "toolResponse": {
@@ -226,6 +230,7 @@ class GeminiLiveRealtimeAgentConnection:
                             "id": call_id,
                             "name": name,
                             "response": output,
+                            "scheduling": "SILENT",
                         }
                     ]
                 }

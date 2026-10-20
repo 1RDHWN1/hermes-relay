@@ -267,6 +267,7 @@ class GeminiLiveRealtimeAgentProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response["id"], "call-9")
         self.assertEqual(response["name"], "hermes_get_status")
         self.assertEqual(response["response"], {"status": "idle"})
+        self.assertEqual(response["scheduling"], "SILENT")
 
     async def test_text_context_and_response_triggers(self) -> None:
         fake_socket = FakeGeminiSocket()
