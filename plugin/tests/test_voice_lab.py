@@ -70,6 +70,7 @@ class VoiceLabTests(unittest.TestCase):
             registry.provider_ids(),
             [
                 "elevenlabs_tts",
+                "gemini_live",
                 "openai_realtime",
                 "openai_tts",
                 "stub",
