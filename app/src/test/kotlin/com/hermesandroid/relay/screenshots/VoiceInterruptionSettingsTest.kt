@@ -10,6 +10,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.hermesandroid.relay.assistant.AssistantWakeRuntimeState
 import com.hermesandroid.relay.data.BargeInPreferences
 import com.hermesandroid.relay.data.VoicePreferencesRepository
+import com.hermesandroid.relay.data.VoiceEngineMode
 import com.hermesandroid.relay.wake.WakeWordPreferences
 import com.hermesandroid.relay.network.upstream.DashboardApiClient
 import com.hermesandroid.relay.ui.screens.VoiceSettingsScreen
@@ -24,6 +25,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -44,7 +46,7 @@ class VoiceInterruptionSettingsTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun standardSettingsExplainPhoneAndHostScopesInEveryMode() {
+    fun standardSettingsKeepSpeechAndMicrophoneControlsIndependent() {
         val phone = MutableStateFlow(BargeInPreferences(enabled = false))
         val settings = mockk<VoiceSettingsViewModel>(relaxed = true) {
             every { bargeInPrefs } returns phone
@@ -83,6 +85,24 @@ class VoiceInterruptionSettingsTest {
                 }
             }
         }
+        compose.onNodeWithContentDescription("Speak tool updates").performScrollTo().assertIsOn().performClick()
+        compose.waitUntil(5_000) { !runBlocking { prefs.settings.first() }.speakToolUpdates }
+        compose.onNodeWithContentDescription("Speak tool updates").assertIsOff()
+        compose.onNodeWithText("Built-in tool updates are English.", substring = true).assertIsDisplayed()
+        capture("tool-updates-off")
+        compose.onNodeWithContentDescription("Final answer only").performScrollTo().performClick()
+        compose.waitUntil(5_000) { runBlocking { prefs.settings.first() }.finalAnswerOnly }
+        compose.onNodeWithContentDescription("Speak tool updates").assertIsNotEnabled().assertIsOff()
+        capture("tool-updates-final-only")
+        compose.onNodeWithContentDescription("Final answer only").performClick()
+        compose.waitUntil(5_000) { !runBlocking { prefs.settings.first() }.finalAnswerOnly }
+        compose.onNodeWithContentDescription("Speak tool updates").assertIsEnabled().assertIsOff()
+        runBlocking { prefs.setEngineMode(VoiceEngineMode.RealtimeAgent) }
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("Speak tool updates").assertDoesNotExist()
+        runBlocking { prefs.setEngineMode(VoiceEngineMode.HermesVoiceOutput) }
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("Speak tool updates").assertIsOff()
         compose.onNodeWithText("Listening").performClick()
         for ((mode, label) in listOf("hold" to "Hold to talk", "tap" to "Tap to talk", "continuous" to "Continuous")) {
             for (enabled in listOf(false, true)) {

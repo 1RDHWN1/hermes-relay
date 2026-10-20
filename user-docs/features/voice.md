@@ -175,6 +175,25 @@ The active engine controls which provider card appears below. Stable voice shows
 the Hermes voice-output renderer settings. Realtime voice shows the Realtime
 Agent provider settings.
 
+### Spoken tool updates
+
+For **Hermes Chat + Voice Output**, **Output → Speak tool updates** controls
+the app's stock tool-start narration on both Standard and Relay audio routes.
+These phrases are English; they do not follow the app locale, speech provider's
+language, or conversation language. Turn the switch off when they do not suit
+your voice. Visible tool progress and intermediate/final assistant readback
+remain available.
+
+The switch defaults on to preserve existing behavior. Its saved choice applies
+across connections and profiles, and voice presets do not reset it. **Final
+answer only** takes priority and temporarily disables the control without
+changing its saved choice. Changes apply to new tool updates; already queued
+audio can finish.
+
+This control is hidden for Realtime Agent. Its tool-start labels are already
+visual-only; provider narration and server-directed spoken progress use separate
+controls. This switch does not translate speech or change tool execution.
+
 ### Global Voice Controls
 
 These controls always show and apply to both engines:

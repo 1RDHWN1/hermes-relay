@@ -4694,4 +4694,6 @@
     <string name="voice_settings_interaction_interruption_hint">Hold records while pressed. To stop the phone listening for spoken interruption during replies, turn off Phone interruption below.</string>
     <string name="voice_settings_host_barge_in">Host barge-in</string>
     <string name="voice_settings_host_barge_in_desc">Controls interruption in Hermes host voice mode. It does not control this phone\'s microphone. Use Phone interruption on Listening.</string>
+    <string name="voice_settings_speak_tool_updates">Speak tool updates</string>
+    <string name="voice_settings_speak_tool_updates_desc">Built-in tool updates are English. Turn off to hear assistant replies without these updates. Final answer only also keeps them silent.</string>
 </resources>
