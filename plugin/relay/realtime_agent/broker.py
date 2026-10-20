@@ -93,6 +93,7 @@ from .models import (
 )
 from .providers import adapter_for
 from .providers.base import RealtimeAgentConnection, RealtimeAgentProvider, RealtimeAgentRenderConfig
+from .providers.gemini import GeminiLiveRealtimeAgentProvider
 from .providers.openai import OpenAIRealtimeAgentProvider
 from .providers.xai import XAIRealtimeAgentProvider
 
@@ -304,6 +305,7 @@ class RealtimeAgentHandler:
         self.native_providers: dict[str, RealtimeAgentProvider] = {
             OpenAIRealtimeAgentProvider.provider_id: OpenAIRealtimeAgentProvider(),
             XAIRealtimeAgentProvider.provider_id: XAIRealtimeAgentProvider(),
+            GeminiLiveRealtimeAgentProvider.provider_id: GeminiLiveRealtimeAgentProvider(),
         }
         # Optional durable-fallback hook (wired by the relay server to
         # ProactiveChannel.push, which buffers for an offline phone): a

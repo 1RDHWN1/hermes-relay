@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .base import RealtimeAgentProviderAdapter
+from .gemini import GeminiLiveRealtimeAgentAdapter, GeminiLiveRealtimeAgentProvider
 from .openai import OpenAIRealtimeAgentAdapter, OpenAIRealtimeAgentProvider
 from .xai import XAIRealtimeAgentAdapter, XAIRealtimeAgentProvider
 
@@ -12,10 +13,14 @@ def adapter_for(provider_id: str) -> RealtimeAgentProviderAdapter:
         return OpenAIRealtimeAgentAdapter()
     if provider_id == XAIRealtimeAgentAdapter.provider_id:
         return XAIRealtimeAgentAdapter()
+    if provider_id == GeminiLiveRealtimeAgentAdapter.provider_id:
+        return GeminiLiveRealtimeAgentAdapter()
     return RealtimeAgentProviderAdapter(provider_id)
 
 
 __all__ = [
+    "GeminiLiveRealtimeAgentAdapter",
+    "GeminiLiveRealtimeAgentProvider",
     "OpenAIRealtimeAgentAdapter",
     "OpenAIRealtimeAgentProvider",
     "RealtimeAgentProviderAdapter",
