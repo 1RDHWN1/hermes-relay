@@ -297,6 +297,98 @@ class GeminiLiveRealtimeAgentProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(turn["turnComplete"])
         self.assertIn("presensi dibuka", turn["turns"][0]["parts"][0]["text"])
 
+    async def test_echo_turn_complete_after_tool_turn_emits_nothing(
+        self,
+    ) -> None:
+        # Gemini finishes the tool-call turn server-side only once it
+        # receives the function response, so a second turnComplete for the
+        # already-closed turn can arrive later. It must not re-emit done
+        # events under the old response id (broker summary corruption).
+        fake_socket = FakeGeminiSocket()
+        connection, _ = await _connect(fake_socket)
+        fake_socket.incoming.extend(
+            [
+                {
+                    "toolCall": {
+                        "functionCalls": [
+                            {
+                                "id": "call-1",
+                                "name": "hermes_run_task",
+                                "args": {"text": "cek status"},
+                            }
+                        ]
+                    }
+                },
+                {"serverContent": {"turnComplete": True}},
+                {"serverContent": {"turnComplete": True}},
+            ]
+        )
+        events = []
+        async for event in connection.events():
+            events.append(event)
+        kinds = [event.kind for event in events]
+        self.assertEqual(
+            kinds,
+            [
+                ProviderEventKind.RESPONSE_STARTED,
+                ProviderEventKind.AUDIO_DONE,
+                ProviderEventKind.RESPONSE_DONE,
+                ProviderEventKind.FUNCTION_CALL_COMPLETED,
+            ],
+        )
+
+    async def test_output_transcription_opens_turn_with_fresh_id(self) -> None:
+        fake_socket = FakeGeminiSocket()
+        connection, _ = await _connect(fake_socket)
+        pcm = b"\x02\x00" * 8
+        audio_part = {
+            "serverContent": {
+                "modelTurn": {
+                    "parts": [
+                        {
+                            "inlineData": {
+                                "mimeType": "audio/pcm;rate=24000",
+                                "data": base64.b64encode(pcm).decode("ascii"),
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        fake_socket.incoming.extend(
+            [
+                audio_part,
+                {"serverContent": {"turnComplete": True}},
+                {
+                    "serverContent": {
+                        "outputTranscription": {"text": "Hasilnya sehat."}
+                    }
+                },
+                audio_part,
+                {"serverContent": {"turnComplete": True}},
+            ]
+        )
+        events = []
+        async for event in connection.events():
+            events.append(event)
+        started = [
+            event
+            for event in events
+            if event.kind == ProviderEventKind.RESPONSE_STARTED
+        ]
+        self.assertEqual(
+            [event.response_id for event in started],
+            ["gemini-turn-1", "gemini-turn-2"],
+        )
+        deltas = [
+            event
+            for event in events
+            if event.kind == ProviderEventKind.OUTPUT_TEXT_DELTA
+        ]
+        self.assertEqual(len(deltas), 1)
+        self.assertEqual(deltas[0].response_id, "gemini-turn-2")
+        self.assertEqual(deltas[0].payload["delta"], "Hasilnya sehat.")
+
     async def test_error_event_normalizes(self) -> None:
         fake_socket = FakeGeminiSocket()
         connection, _ = await _connect(fake_socket)

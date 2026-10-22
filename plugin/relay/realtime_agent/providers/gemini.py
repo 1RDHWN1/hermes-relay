@@ -315,6 +315,17 @@ class GeminiLiveRealtimeAgentConnection:
         ]
 
     def _end_turn(self, *, interrupted: bool) -> list[ProviderEvent]:
+        if not self._in_turn:
+            # A turnComplete/interrupted signal with no open turn is a
+            # server-side echo: Gemini finishes the tool-call turn only
+            # once it receives the function response, long after the turn
+            # was already closed locally. Re-emitting done events here
+            # would reuse the previous turn's response id, and the broker
+            # reads them as a fresh response — corrupting its
+            # forced-summary response tracking (observed live: the stale
+            # id claimed the summary slot and the real summary response
+            # was suppressed as a duplicate, so the answer never played).
+            return []
         events = [
             ProviderEvent(
                 ProviderEventKind.AUDIO_DONE,
@@ -436,6 +447,12 @@ class GeminiLiveRealtimeAgentConnection:
                 previous=self._output_transcript,
             )
             if delta:
+                # Output transcription belongs to the model turn it
+                # transcribes. When it precedes the turn's first audio
+                # part, open the turn here so the delta carries the new
+                # turn's response id — not the previous turn's, which the
+                # broker may already consider completed.
+                events.extend(self._begin_turn())
                 self._output_transcript += delta
                 events.append(
                     ProviderEvent(
