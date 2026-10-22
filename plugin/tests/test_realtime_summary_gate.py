@@ -93,6 +93,40 @@ class ForcedSummaryGateTest(unittest.TestCase):
         self.assertEqual("resp-1", self.session.native_forced_summary_response_id)
         self.assertFalse(self.gate(ProviderEventKind.RESPONSE_STARTED, "resp-2"))
 
+    def _conclude_summary(self) -> None:
+        self.session.native_forced_summary_active = False
+        self.session.native_forced_summary_done = True
+        self.session.native_forced_summary_done_at = 100.0
+        self.session.response_ids_done.add("gemini-turn-4")
+
+    def test_followup_response_with_fresh_input_lifts_mute(self) -> None:
+        # Live failure 2026-10-22 (second session): the provider answered
+        # a follow-up question before the transcript-final reset ran, and
+        # the whole response was eaten by the post-summary mute.
+        self._conclude_summary()
+        self.session.native_last_input_audio_at = 150.0
+        self.assertTrue(
+            self.gate(ProviderEventKind.RESPONSE_STARTED, "gemini-turn-5")
+        )
+        self.assertFalse(self.session.native_forced_summary_done)
+        self.assertTrue(self.gate(ProviderEventKind.AUDIO_DELTA, "gemini-turn-5"))
+
+    def test_auto_continuation_without_fresh_input_stays_muted(self) -> None:
+        self._conclude_summary()
+        self.session.native_last_input_audio_at = 50.0
+        self.assertFalse(
+            self.gate(ProviderEventKind.RESPONSE_STARTED, "gemini-turn-5")
+        )
+        self.assertTrue(self.session.native_forced_summary_done)
+
+    def test_completed_response_id_never_lifts_mute(self) -> None:
+        self._conclude_summary()
+        self.session.native_last_input_audio_at = 150.0
+        self.assertFalse(
+            self.gate(ProviderEventKind.RESPONSE_STARTED, "gemini-turn-4")
+        )
+        self.assertTrue(self.session.native_forced_summary_done)
+
     def test_mark_done_records_completion_without_active_summary(self) -> None:
         self.session.native_forced_summary_active = False
         self.handler._mark_provider_response_done(

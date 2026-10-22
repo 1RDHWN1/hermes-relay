@@ -226,6 +226,11 @@ class RealtimeAgentSession:
     # flushed — the rest of that response streams live (no more buffering)
     # and the end-of-response validation is skipped (audio already played).
     native_forced_summary_committed: bool = False
+    # time.monotonic() when the forced summary last concluded; the gate
+    # compares it against the last live mic chunk to tell a provider
+    # auto-continuation (stays muted) from the answer to a new user
+    # utterance (lifts the mute).
+    native_forced_summary_done_at: float = 0.0
     # Last background result that reached the delivery step — kept so the
     # client can request a respeak (DONE-chip tap) and the delivery-confirm
     # watcher can force a text emit if the spoken summary never lands.
@@ -1376,6 +1381,34 @@ class RealtimeAgentHandler:
         event: ProviderEvent,
     ) -> bool:
         response_id = str(event.response_id or "").strip()
+        if (
+            session.native_forced_summary_done
+            and event.kind == ProviderEventKind.RESPONSE_STARTED
+            and response_id
+            and response_id not in session.response_ids_done
+            and session.native_forced_summary_done_at > 0.0
+            and session.native_last_input_audio_at
+            > session.native_forced_summary_done_at
+        ):
+            # The provider auto-starts its answer to a new user utterance
+            # as soon as the client commits audio, which can beat the
+            # transcript-final handler that normally resets the summary
+            # state for the new turn. Fresh user input after the summary
+            # concluded ends the post-summary mute: this response belongs
+            # to the new turn. (Observed live: a follow-up question's
+            # entire response was suppressed as post-summary traffic and
+            # the user heard silence.) A provider auto-continuation with
+            # no fresh input stays muted as before.
+            session.native_forced_summary_done = False
+            self._log(
+                session,
+                "voice.response.forced_summary_mute_lifted",
+                {
+                    "type": "voice.response.forced_summary_mute_lifted",
+                    "response_id": response_id,
+                    "provider": session.provider,
+                },
+            )
         if session.native_forced_summary_done:
             self._log(
                 session,
@@ -1480,6 +1513,7 @@ class RealtimeAgentHandler:
         session.native_forced_summary_response_id = response_id
         session.native_forced_summary_active = False
         session.native_forced_summary_done = True
+        session.native_forced_summary_done_at = time.monotonic()
         session.native_forced_summary_result = None
         session.native_forced_summary_buffer.clear()
         session.native_forced_summary_committed = False
@@ -2179,6 +2213,7 @@ class RealtimeAgentHandler:
             session.native_forced_summary_text_parts.clear()
             session.native_forced_summary_active = False
             session.native_forced_summary_done = True
+            session.native_forced_summary_done_at = time.monotonic()
             session.native_forced_summary_response_id = response_id
             session.native_forced_summary_result = None
             # The provider never sees this fallback delivery — leave a note
@@ -3624,6 +3659,7 @@ class RealtimeAgentHandler:
         session.native_pending_delivery_note = _delivery_note(fallback_text)
         session.native_forced_summary_active = False
         session.native_forced_summary_done = True
+        session.native_forced_summary_done_at = time.monotonic()
         session.native_forced_summary_response_id = None
         session.native_forced_summary_result = None
         session.native_forced_summary_buffer.clear()
@@ -3731,6 +3767,7 @@ class RealtimeAgentHandler:
         # Concluded-by-preemption: the queued-run phase waits and the
         # delivery-confirm alarm both treat the lifecycle as settled.
         session.native_forced_summary_done = True
+        session.native_forced_summary_done_at = time.monotonic()
         with contextlib.suppress(Exception):
             await connection.cancel_response()
         self._log(
