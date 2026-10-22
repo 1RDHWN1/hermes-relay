@@ -267,6 +267,7 @@ class RealtimeAgentSession:
     background_delivery_task: asyncio.Task[None] | None = None
     response_ids_awaiting_tool_followup: set[str] = field(default_factory=set)
     response_ids_started: set[str] = field(default_factory=set)
+    response_ids_done: set[str] = field(default_factory=set)
     provider_response_audio_seen: set[str] = field(default_factory=set)
     hermes_active_tool_call_id: str | None = None
     hermes_active_tool_name: str | None = None
@@ -1389,9 +1390,46 @@ class RealtimeAgentHandler:
         if not session.native_forced_summary_active:
             return True
 
+        if response_id and response_id in session.response_ids_done:
+            # Straggler event for a response that completed before this
+            # summary began (a provider echo of the tool-call turn once it
+            # receives the function response, a late transcript flush).
+            # It must never claim the summary slot — observed live when a
+            # stale acknowledgement-turn id pinned the slot and the entire
+            # summary response was suppressed as its "duplicate".
+            self._log(
+                session,
+                "voice.response.suppressed_stale_response_event",
+                {
+                    "type": "voice.response.suppressed_stale_response_event",
+                    "response_id": response_id,
+                    "provider": session.provider,
+                },
+            )
+            return False
+
         marker = response_id or "__blank_response_id__"
         if session.native_forced_summary_response_id is None:
+            if (
+                event.kind
+                in (ProviderEventKind.AUDIO_DONE, ProviderEventKind.RESPONSE_DONE)
+                and marker not in session.response_ids_started
+            ):
+                # Done events carry no content and never claim the slot:
+                # the owning response pins it via its started/content
+                # events. A done event whose response never started is a
+                # completion racing the summary activation.
+                return False
             session.native_forced_summary_response_id = marker
+            self._log(
+                session,
+                "voice.response.forced_summary_response_accepted",
+                {
+                    "type": "voice.response.forced_summary_response_accepted",
+                    "response_id": response_id or None,
+                    "provider": session.provider,
+                },
+            )
         if session.native_forced_summary_response_id != marker:
             self._log(
                 session,
@@ -1428,9 +1466,15 @@ class RealtimeAgentHandler:
         session: RealtimeAgentSession,
         event: ProviderEvent,
     ) -> None:
+        raw_response_id = str(event.response_id or "").strip()
+        if raw_response_id:
+            # Record every completion, not just summary ones: the
+            # forced-summary gate tells a live summary response apart from
+            # straggler events of earlier responses through this set.
+            session.response_ids_done.add(raw_response_id)
         if not session.native_forced_summary_active:
             return
-        response_id = str(event.response_id or "").strip() or "__blank_response_id__"
+        response_id = raw_response_id or "__blank_response_id__"
         if session.native_forced_summary_response_id not in {None, response_id}:
             return
         session.native_forced_summary_response_id = response_id
@@ -2742,6 +2786,7 @@ class RealtimeAgentHandler:
         if response_id not in session.response_ids_awaiting_tool_followup:
             return False
         session.response_ids_awaiting_tool_followup.discard(response_id)
+        session.response_ids_done.add(response_id)
         if session.native_forced_summary_active:
             session.native_forced_summary_response_id = None
             session.native_forced_summary_buffer.clear()
